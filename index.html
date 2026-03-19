@@ -4,137 +4,346 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#f4f2ed">
 <link rel="manifest" href="./manifest.json">
 <title>SpeakUp - 思维训练平台</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a0a0a; --card: #141414; --card2: #1c1c1c;
-  --red: #e11d48; --red2: #ff2d55; --red-glow: #e11d4830;
-  --blue: #3b82f6; --blue2: #60a5fa; --blue-glow: #3b82f630;
-  --purple: #8b5cf6; --purple2: #a78bfa; --purple-glow: #8b5cf630;
-  --green: #22c55e; --green2: #4ade80; --green-glow: #22c55e30;
-  --yellow: #ff6b35;
-  --text: #f0f0f0; --text2: #a0a0a0; --text3: #555; --radius: 6px;
+  --bg: #f4f2ed;
+  --bg2: #eae7e0;
+  --card: #ffffff;
+  --card-hover: #faf9f7;
+  --dark: #1a1a2e;
+  --dark2: #16213e;
+  --text: #1a1a2e;
+  --text2: #5a5a6e;
+  --text3: #9a9aaa;
+  --red: #c0392b;
+  --red-soft: #e74c3c15;
+  --blue: #2a5783;
+  --blue-soft: #2a578315;
+  --purple: #664593;
+  --purple-soft: #66459315;
+  --green: #1e7a46;
+  --green-soft: #1e7a4615;
+  --radius: 20px;
+  --serif: 'Playfair Display', 'Georgia', serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
+
 body {
-  font-family:'Inter',-apple-system,sans-serif; background:var(--bg); color:var(--text);
-  min-height:100vh; -webkit-tap-highlight-color:transparent; position:relative; overflow-x:hidden;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
 }
-body::before { content:''; position:fixed; top:-40%; right:-20%; width:60vw; height:60vw; background:var(--purple); clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%); opacity:0.03; z-index:0; pointer-events:none; }
-body::after { content:''; position:fixed; bottom:-30%; left:-15%; width:50vw; height:50vw; background:var(--blue); clip-path:polygon(0 0,100% 0,100% 100%); opacity:0.025; z-index:0; pointer-events:none; }
 
-.launcher { position:relative; z-index:1; width:100%; max-width:420px; }
-.logo { text-align:center; margin-bottom:36px; }
-.logo h1 { font-size:36px; font-weight:900; letter-spacing:-1px; margin-bottom:8px; }
-.logo h1 .accent { color:var(--red2); text-shadow:0 0 30px var(--red-glow); }
-.logo p { font-size:14px; color:var(--text3); letter-spacing:2px; text-transform:uppercase; font-weight:600; }
+/* ---- Hero Section ---- */
+.hero {
+  background: linear-gradient(180deg, #2a5783 0%, #1a3a5c 40%, #16213e 100%);
+  padding: 60px 24px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -25%;
+  width: 150%;
+  height: 200%;
+  background: radial-gradient(ellipse at 30% 20%, rgba(102,69,147,0.2) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 80%, rgba(30,122,70,0.15) 0%, transparent 50%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: var(--bg);
+  clip-path: ellipse(55% 100% at 50% 100%);
+}
+.hero-content { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 28px;
+  letter-spacing: 0.5px;
+}
+.hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 
-.mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.hero h1 {
+  font-family: var(--serif);
+  font-size: 48px;
+  font-weight: 400;
+  color: #ffffff;
+  line-height: 1.15;
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
+}
+.hero h1 em {
+  font-style: italic;
+  color: rgba(255,255,255,0.7);
+}
+.hero p {
+  font-size: 16px;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.7;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+/* ---- Stats Pill ---- */
+.stats-pill {
+  position: relative;
+  z-index: 2;
+  max-width: 500px;
+  margin: -40px auto 0;
+  background: var(--card);
+  border-radius: 50px;
+  padding: 14px 32px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
+}
+.stat-item { text-align: center; flex: 1; }
+.stat-value { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--text); }
+.stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+.stat-divider { width: 1px; height: 32px; background: var(--bg2); }
+
+/* ---- Main Content ---- */
+.main { max-width: 520px; margin: 0 auto; padding: 40px 20px 60px; }
+
+.section-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text3);
+  margin-bottom: 20px;
+  padding-left: 4px;
+}
+
+/* ---- Mode Cards ---- */
+.mode-grid { display: flex; flex-direction: column; gap: 14px; }
 
 .mode-card {
-  background:var(--card); border:1px solid #ffffff08; border-radius:var(--radius);
-  padding:22px 14px; cursor:pointer; transition:all 0.2s ease;
-  display:flex; flex-direction:column; align-items:center; text-align:center; gap:10px;
-  text-decoration:none; color:var(--text); position:relative; overflow:hidden;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--card);
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  text-decoration: none;
+  color: var(--text);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
-.mode-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; transition:opacity 0.2s; }
-.mode-card:hover,.mode-card:active { transform:translateY(-4px); background:var(--card2); }
+.mode-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+  border-color: rgba(0,0,0,0.06);
+}
+.mode-card:active { transform: translateY(-1px); }
 
-.mode-card.speak::before { background:linear-gradient(90deg,var(--red),var(--red2)); box-shadow:0 0 20px var(--red-glow); }
-.mode-card.speak:hover { box-shadow:0 8px 40px var(--red-glow); border-color:#e11d4840; }
-.mode-card.speak .mode-title { color:var(--red2); }
-.mode-card.speak .mode-badge { background:#e11d4820; color:var(--red2); border:1px solid #e11d4830; }
+.mode-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+.mode-card:hover .mode-icon-wrap { transform: scale(1.08) rotate(-2deg); }
 
-.mode-card.translate::before { background:linear-gradient(90deg,var(--blue),var(--blue2)); box-shadow:0 0 20px var(--blue-glow); }
-.mode-card.translate:hover { box-shadow:0 8px 40px var(--blue-glow); border-color:#3b82f640; }
-.mode-card.translate .mode-title { color:var(--blue2); }
-.mode-card.translate .mode-badge { background:#3b82f620; color:var(--blue2); border:1px solid #3b82f630; }
+.mode-card.speak .mode-icon-wrap { background: var(--red-soft); }
+.mode-card.translate .mode-icon-wrap { background: var(--blue-soft); }
+.mode-card.debate .mode-icon-wrap { background: var(--purple-soft); }
+.mode-card.feynman .mode-icon-wrap { background: var(--green-soft); }
 
-.mode-card.debate::before { background:linear-gradient(90deg,var(--purple),var(--purple2)); box-shadow:0 0 20px var(--purple-glow); }
-.mode-card.debate:hover { box-shadow:0 8px 40px var(--purple-glow); border-color:#8b5cf640; }
-.mode-card.debate .mode-title { color:var(--purple2); }
-.mode-card.debate .mode-badge { background:#8b5cf620; color:var(--purple2); border:1px solid #8b5cf630; }
+.mode-info { flex: 1; min-width: 0; }
+.mode-title {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+}
+.mode-desc { font-size: 13px; color: var(--text3); line-height: 1.5; }
 
-.mode-card.feynman::before { background:linear-gradient(90deg,var(--green),var(--green2)); box-shadow:0 0 20px var(--green-glow); }
-.mode-card.feynman:hover { box-shadow:0 8px 40px var(--green-glow); border-color:#22c55e40; }
-.mode-card.feynman .mode-title { color:var(--green2); }
-.mode-card.feynman .mode-badge { background:#22c55e20; color:var(--green2); border:1px solid #22c55e30; }
+.mode-arrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--text3);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+.mode-card:hover .mode-arrow {
+  border-color: var(--text);
+  color: var(--text);
+  transform: translateX(3px);
+}
 
-.mode-icon { font-size:40px; line-height:1; }
-.mode-title { font-size:15px; font-weight:700; letter-spacing:-0.3px; }
-.mode-desc { font-size:10px; color:var(--text3); line-height:1.5; }
-.mode-badge { font-size:10px; padding:3px 10px; border-radius:2px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+.mode-card.speak .mode-title { color: var(--red); }
+.mode-card.translate .mode-title { color: var(--blue); }
+.mode-card.debate .mode-title { color: var(--purple); }
+.mode-card.feynman .mode-title { color: var(--green); }
 
-.stats-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:28px; padding:16px 0; border-top:1px solid #ffffff08; }
-.stat-item { text-align:center; }
-.stat-value { font-size:18px; font-weight:700; }
-.stat-label { font-size:9px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+/* ---- Footer ---- */
+.footer {
+  text-align: center;
+  padding: 40px 20px 50px;
+  font-size: 12px;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.footer-brand { font-family: var(--serif); font-size: 14px; color: var(--text2); margin-bottom: 6px; }
 
-.footer { text-align:center; margin-top:32px; font-size:11px; color:var(--text3); letter-spacing:1px; text-transform:uppercase; }
+/* ---- Animations ---- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero-content { animation: fadeUp 0.8s ease forwards; }
+.stats-pill { animation: fadeUp 0.8s ease 0.2s both; }
+.mode-card:nth-child(1) { animation: fadeUp 0.6s ease 0.3s both; }
+.mode-card:nth-child(2) { animation: fadeUp 0.6s ease 0.4s both; }
+.mode-card:nth-child(3) { animation: fadeUp 0.6s ease 0.5s both; }
+.mode-card:nth-child(4) { animation: fadeUp 0.6s ease 0.6s both; }
+
+/* ---- Responsive ---- */
+@media (max-width: 480px) {
+  .hero { padding: 48px 20px 60px; }
+  .hero h1 { font-size: 36px; }
+  .hero p { font-size: 14px; }
+  .stats-pill { margin: -32px 16px 0; padding: 12px 20px; border-radius: 40px; }
+  .stat-value { font-size: 20px; }
+  .mode-card { padding: 18px 20px; gap: 16px; }
+  .mode-icon-wrap { width: 48px; height: 48px; font-size: 22px; border-radius: 14px; }
+  .mode-title { font-size: 17px; }
+}
 </style>
 </head>
 <body>
-<div class="launcher">
-  <div class="logo">
-    <h1>🎯 Speak<span class="accent">Up</span></h1>
-    <p>思维训练平台</p>
-  </div>
 
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge"><span class="dot"></span> Powered by Gemini AI</div>
+    <h1>Train your mind,<br><em>sharpen your words</em></h1>
+    <p>口语、翻译、辩论、费曼复盘——四大模式，全方位提升你的思维表达能力</p>
+  </div>
+</section>
+
+<div class="stats-pill">
+  <div class="stat-item">
+    <div class="stat-value" id="total-speak">0</div>
+    <div class="stat-label">口语</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-value" id="total-translate">0</div>
+    <div class="stat-label">翻译</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-value" id="total-debate">0</div>
+    <div class="stat-label">辩论</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-value" id="total-feynman">0</div>
+    <div class="stat-label">复盘</div>
+  </div>
+</div>
+
+<main class="main">
+  <div class="section-label">选择训练模式</div>
   <div class="mode-grid">
     <a href="./speak.html" class="mode-card speak">
-      <div class="mode-icon">🗣️</div>
-      <div class="mode-title">口语训练</div>
-      <div class="mode-desc">英语 AI 对话练习<br>五维评分追踪</div>
-      <div class="mode-badge" id="speak-badge">开始训练</div>
+      <div class="mode-icon-wrap">🗣️</div>
+      <div class="mode-info">
+        <div class="mode-title">口语训练</div>
+        <div class="mode-desc">英语 AI 对话练习 · 五维评分追踪</div>
+      </div>
+      <div class="mode-arrow">→</div>
     </a>
     <a href="./translate.html" class="mode-card translate">
-      <div class="mode-icon">📝</div>
-      <div class="mode-title">翻译训练</div>
-      <div class="mode-desc">中英互译练习<br>译文精准分析</div>
-      <div class="mode-badge" id="translate-badge">开始训练</div>
+      <div class="mode-icon-wrap">📝</div>
+      <div class="mode-info">
+        <div class="mode-title">翻译训练</div>
+        <div class="mode-desc">中英互译练习 · 译文精准分析</div>
+      </div>
+      <div class="mode-arrow">→</div>
     </a>
     <a href="./debate.html" class="mode-card debate">
-      <div class="mode-icon">🗡️</div>
-      <div class="mode-title">辩论训练</div>
-      <div class="mode-desc">批判性思维对练<br>逻辑结构提升</div>
-      <div class="mode-badge" id="debate-badge">开始训练</div>
+      <div class="mode-icon-wrap">🗡️</div>
+      <div class="mode-info">
+        <div class="mode-title">辩论训练</div>
+        <div class="mode-desc">批判性思维对练 · 逻辑结构提升</div>
+      </div>
+      <div class="mode-arrow">→</div>
     </a>
     <a href="./feynman.html" class="mode-card feynman">
-      <div class="mode-icon">🧒</div>
-      <div class="mode-title">费曼复盘</div>
-      <div class="mode-desc">输出倒逼输入<br>知识揉碎讲透</div>
-      <div class="mode-badge" id="feynman-badge">开始训练</div>
+      <div class="mode-icon-wrap">🧒</div>
+      <div class="mode-info">
+        <div class="mode-title">费曼复盘</div>
+        <div class="mode-desc">输出倒逼输入 · 知识揉碎讲透</div>
+      </div>
+      <div class="mode-arrow">→</div>
     </a>
   </div>
+</main>
 
-  <div class="stats-bar">
-    <div class="stat-item"><div class="stat-value" id="total-speak" style="color:var(--red2);text-shadow:0 0 15px var(--red-glow)">0</div><div class="stat-label">口语</div></div>
-    <div class="stat-item"><div class="stat-value" id="total-translate" style="color:var(--blue2);text-shadow:0 0 15px var(--blue-glow)">0</div><div class="stat-label">翻译</div></div>
-    <div class="stat-item"><div class="stat-value" id="total-debate" style="color:var(--purple2);text-shadow:0 0 15px var(--purple-glow)">0</div><div class="stat-label">辩论</div></div>
-    <div class="stat-item"><div class="stat-value" id="total-feynman" style="color:var(--green2);text-shadow:0 0 15px var(--green-glow)">0</div><div class="stat-label">复盘</div></div>
-  </div>
-
-  <div class="footer">POWERED BY GEMINI AI</div>
-</div>
+<footer class="footer">
+  <div class="footer-brand">SpeakUp</div>
+  思维训练平台 · Since 2026
+</footer>
 
 <script>
 const KEYS = [
-  {storage:'speakup_data', api:'/api/data', el:'total-speak', badge:'speak-badge'},
-  {storage:'translate_data', api:'/api/translate_data', el:'total-translate', badge:'translate-badge'},
-  {storage:'debate_data', api:'/api/debate_data', el:'total-debate', badge:'debate-badge'},
-  {storage:'feynman_data', api:'/api/feynman_data', el:'total-feynman', badge:'feynman-badge'}
+  {storage:'speakup_data', api:'/api/data', el:'total-speak'},
+  {storage:'translate_data', api:'/api/translate_data', el:'total-translate'},
+  {storage:'debate_data', api:'/api/debate_data', el:'total-debate'},
+  {storage:'feynman_data', api:'/api/feynman_data', el:'total-feynman'}
 ];
 
 function loadStats() {
   KEYS.forEach(k => {
     try {
       const d = JSON.parse(localStorage.getItem(k.storage) || '{"records":[]}');
-      document.getElementById(k.el).textContent = d.records.length;
-      if (d.records.length > 0) document.getElementById(k.badge).textContent = `${d.records.length} 次训练`;
+      const count = (d && Array.isArray(d.records)) ? d.records.length : 0;
+      document.getElementById(k.el).textContent = count;
     } catch {}
   });
 }
@@ -142,7 +351,7 @@ loadStats();
 
 Promise.all(KEYS.map(k =>
   fetch(k.api).then(r => r.ok ? r.json() : null).catch(() => null)
-    .then(data => { if (data) localStorage.setItem(k.storage, JSON.stringify(data)); })
+    .then(data => { if (data && Array.isArray(data.records)) localStorage.setItem(k.storage, JSON.stringify(data)); })
 )).then(loadStats);
 </script>
 </body>
