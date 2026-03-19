@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0a">
+<title>费曼复盘 - SpeakUp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a; --card: #141414; --card2: #1c1c1c;
+  --accent: #22c55e; --accent2: #4ade80; --accent-glow: #22c55e30;
+  --green: #22c55e; --red: #ef4444; --yellow: #ff6b35;
+  --text: #f0f0f0; --text2: #a0a0a0; --text3: #555; --radius: 4px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:80px; -webkit-tap-highlight-color:transparent; position:relative; overflow-x:hidden; }
+body::before { content:''; position:fixed; top:-40%; right:-20%; width:60vw; height:60vw; background:var(--accent); clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%); opacity:0.03; z-index:0; pointer-events:none; }
+body::after { content:''; position:fixed; bottom:-30%; left:-15%; width:50vw; height:50vw; background:var(--accent2); clip-path:polygon(0 0,100% 0,100% 100%); opacity:0.025; z-index:0; pointer-events:none; }
+
+.header { padding:20px 20px 10px; display:flex; justify-content:space-between; align-items:center; position:relative; z-index:1; }
+.header h1 { font-size:24px; font-weight:700; letter-spacing:-0.5px; }
+.header h1 span { color:var(--accent2); text-shadow:0 0 30px var(--accent-glow); }
+.back-btn { color:var(--text2); text-decoration:none; font-size:14px; display:flex; align-items:center; gap:4px; font-weight:600; }
+.streak { background:linear-gradient(135deg,#22c55e20,#22c55e10); border:1px solid #22c55e40; padding:6px 14px; border-radius:2px; font-size:13px; color:var(--accent2); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+
+.tab-bar { position:fixed; bottom:0; left:0; right:0; background:#0d0d0d; border-top:1px solid #22c55e30; display:flex; z-index:100; padding-bottom:env(safe-area-inset-bottom); }
+.tab { flex:1; padding:12px 0 10px; text-align:center; font-size:11px; color:var(--text3); cursor:pointer; transition:all 0.2s; border:none; background:none; text-transform:uppercase; letter-spacing:0.5px; position:relative; }
+.tab.active { color:var(--accent2); }
+.tab.active::after { content:''; position:absolute; top:0; left:20%; right:20%; height:2px; background:var(--accent); box-shadow:0 0 10px var(--accent-glow); }
+.tab-icon { font-size:20px; display:block; margin-bottom:2px; }
+
+.page { display:none; padding:0 16px 20px; position:relative; z-index:1; }
+.page.active { display:block; }
+.card { background:var(--card); border-radius:var(--radius); padding:20px; margin-bottom:14px; border:1px solid #ffffff08; border-left:3px solid var(--accent); position:relative; }
+.prompt-card { background:linear-gradient(135deg,#22c55e08,#141414); border:1px solid #22c55e25; border-left:3px solid var(--accent); }
+.scores-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px; }
+.score-item { text-align:center; padding:12px 4px; background:var(--card2); border-radius:2px; border-bottom:2px solid var(--accent); transition:transform 0.2s,box-shadow 0.2s; }
+.score-item:hover { transform:translateY(-2px); box-shadow:0 4px 20px var(--accent-glow); }
+.score-item .value { font-size:24px; font-weight:700; color:var(--accent2); text-shadow:0 0 20px var(--accent-glow); }
+.score-item .label { font-size:10px; color:var(--text3); margin-top:4px; text-transform:uppercase; letter-spacing:1px; }
+.score-item .trend { font-size:12px; margin-top:2px; font-weight:700; }
+.trend-up { color:var(--green); } .trend-down { color:var(--red); } .trend-flat { color:var(--text3); }
+.prompt-topic { display:inline-block; background:var(--accent); color:#0a0a0a; font-size:11px; font-weight:700; padding:4px 12px; border-radius:2px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+.prompt-focus { font-size:13px; color:var(--yellow); margin-bottom:12px; font-weight:500; }
+.prompt-text { background:#080808; border-radius:2px; padding:14px; font-size:13px; line-height:1.7; color:var(--text2); max-height:200px; overflow-y:auto; white-space:pre-wrap; word-break:break-word; border:1px solid #ffffff08; }
+.btn { display:inline-flex; align-items:center; gap:6px; padding:14px 24px; border:none; border-radius:2px; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.15s; font-family:inherit; text-transform:uppercase; letter-spacing:0.5px; }
+.btn:active { transform:scale(0.97); }
+.btn-primary { background:var(--accent); color:#0a0a0a; width:100%; justify-content:center; margin-top:14px; box-shadow:0 4px 20px var(--accent-glow); }
+.btn-primary:hover { background:var(--accent2); box-shadow:0 6px 30px var(--accent-glow); }
+.btn-secondary { background:var(--card2); color:var(--text); width:100%; justify-content:center; margin-top:10px; border:1px solid #ffffff10; }
+.btn-small { padding:10px 16px; font-size:12px; }
+.btn-danger { background:#dc262615; color:var(--red); border:1px solid #dc262640; }
+.paste-area { width:100%; min-height:120px; background:#080808; border:1px solid #ffffff12; border-left:3px solid var(--accent); border-radius:2px; padding:14px; color:var(--text); font-size:13px; font-family:'Courier New',monospace; resize:vertical; outline:none; transition:border-color 0.2s; }
+.paste-area:focus { border-color:var(--accent); box-shadow:0 0 20px var(--accent-glow); }
+.paste-area::placeholder { color:var(--text3); }
+.section-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:6px; text-transform:uppercase; letter-spacing:1px; }
+.bookmark-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px; }
+.bookmark { background:var(--card); border:1px solid #ffffff08; border-left:3px solid var(--accent); border-radius:2px; padding:14px 10px; cursor:pointer; transition:all 0.15s; display:flex; flex-direction:column; align-items:center; gap:6px; min-height:140px; }
+.bookmark:hover,.bookmark:active { background:var(--card2); border-left-color:var(--accent2); transform:translateY(-2px); box-shadow:0 4px 20px var(--accent-glow); }
+.bookmark .bm-date { font-size:11px; color:var(--text3); font-weight:600; }
+.bookmark .bm-topic { font-size:12px; color:var(--text); text-align:center; line-height:1.3; flex:1; display:flex; align-items:center; word-break:break-all; overflow:hidden; }
+.bookmark .bm-score { font-size:22px; font-weight:700; color:var(--accent2); text-shadow:0 0 15px var(--accent-glow); }
+.bookmark .bm-visit { font-size:10px; padding:2px 8px; border-radius:2px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+.bm-visit.new { background:var(--accent); color:#0a0a0a; } .bm-visit.done { background:#3b82f6; color:white; }
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:200; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.modal-overlay.show { display:block; }
+.modal { background:var(--bg); min-height:100vh; padding:20px 16px 100px; position:relative; z-index:1; }
+.modal-close { position:fixed; top:16px; right:16px; width:36px; height:36px; border:1px solid #ffffff20; background:var(--card); color:var(--text); border-radius:2px; font-size:18px; cursor:pointer; z-index:210; display:flex; align-items:center; justify-content:center; }
+.modal-header { margin-bottom:20px; }
+.modal-header h2 { font-size:18px; font-weight:700; margin-bottom:6px; }
+.modal-header .meta { font-size:12px; color:var(--text3); }
+.score-bar-row { display:flex; align-items:center; margin-bottom:12px; gap:10px; }
+.score-bar-label { font-size:12px; color:var(--text2); min-width:36px; text-align:right; font-weight:600; }
+.score-bar-track { flex:1; height:8px; background:var(--card2); border-radius:1px; overflow:hidden; }
+.score-bar-fill { height:100%; border-radius:1px; transition:width 0.5s ease; }
+.score-bar-value { font-size:14px; font-weight:700; min-width:24px; color:var(--accent2); }
+.advice-card { background:var(--card); border-left:3px solid var(--accent); border-radius:2px; padding:14px; margin-bottom:10px; }
+.advice-card h4 { font-size:13px; font-weight:700; color:var(--accent2); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; }
+.advice-card .diagnosis { font-size:13px; color:var(--text); margin-bottom:8px; line-height:1.5; }
+.advice-card .exercises { font-size:12px; color:var(--text2); line-height:1.6; }
+.advice-card .exercises li { margin-left:16px; margin-bottom:4px; }
+.advice-card .target-text { font-size:12px; color:var(--yellow); margin-top:8px; font-weight:500; }
+.review-prompt-box { background:#080808; border:1px solid #ffffff08; border-left:3px solid #3b82f6; border-radius:2px; padding:14px; font-size:12px; line-height:1.6; color:var(--text2); max-height:200px; overflow-y:auto; white-space:pre-wrap; word-break:break-word; margin-top:10px; }
+.chart-container { height:160px; display:flex; align-items:flex-end; gap:6px; padding:10px 0; }
+.chart-bar-group { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.chart-bar { width:100%; max-width:32px; background:linear-gradient(180deg,var(--accent),var(--accent2)); border-radius:1px; transition:height 0.5s ease; min-height:4px; box-shadow:0 0 10px var(--accent-glow); }
+.chart-label { font-size:9px; color:var(--text3); text-align:center; }
+.setting-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid #ffffff08; }
+.setting-row:last-child { border-bottom:none; }
+.setting-label { font-size:14px; color:var(--text2); }
+.setting-value { font-size:14px; color:var(--accent2); font-weight:700; }
+.toast { position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-100px); background:var(--accent); color:#0a0a0a; padding:12px 24px; border-radius:2px; font-size:14px; font-weight:700; z-index:999; transition:transform 0.3s ease; white-space:nowrap; box-shadow:0 4px 20px var(--accent-glow); text-transform:uppercase; letter-spacing:0.5px; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+.empty-state { text-align:center; padding:40px 20px; color:var(--text3); }
+.empty-state .icon { font-size:48px; margin-bottom:12px; }
+.empty-state p { font-size:14px; line-height:1.6; }
+.manual-row { display:flex; align-items:center; margin-bottom:10px; gap:10px; }
+.manual-row label { font-size:13px; color:var(--text2); min-width:90px; }
+.manual-row input { flex:1; padding:8px 12px; background:var(--bg); border:1px solid #ffffff15; border-radius:8px; color:var(--text); font-size:14px; outline:none; font-family:inherit; }
+.manual-row input:focus { border-color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="header">
+  <a href="./index.html" class="back-btn">← 返回</a>
+  <h1>🧒 费曼<span>复盘</span></h1>
+  <div class="streak" id="streak">📚 0 次</div>
+</div>
+
+<div class="page active" id="page-home">
+  <div class="card"><div class="section-title">📊 当前水平</div>
+    <div class="scores-grid" id="scores-grid">
+      <div class="score-item"><div class="value">-</div><div class="label">简洁</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">准确</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">类比</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">完整</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">互动</div><div class="trend">-</div></div>
+    </div>
+  </div>
+  <div class="card prompt-card">
+    <div class="section-title">🎯 今日费曼复盘</div>
+    <div class="prompt-topic" id="today-topic">加载中...</div>
+    <div class="prompt-focus" id="today-focus"></div>
+    <div class="prompt-text" id="prompt-text">正在生成提示词...</div>
+    <button class="btn btn-primary" onclick="copyPrompt()">📋 复制提示词到 Gemini</button>
+  </div>
+  <div class="card"><div class="section-title">📈 近 7 次趋势</div><div class="chart-container" id="mini-chart"></div></div>
+</div>
+
+<div class="page" id="page-record">
+  <div class="card">
+    <div class="section-title">📝 录入复盘结果</div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.6">复盘结束后，跟 Gemini 说 <strong style="color:var(--yellow)">"总结一下"</strong><br>Gemini 会输出 JSON 评分 + 建议，直接粘贴：</p>
+    <textarea class="paste-area" id="json-input" placeholder='粘贴 Gemini 输出的完整 JSON'></textarea>
+    <button class="btn btn-primary" onclick="submitRecord()">✅ 录入记录</button>
+  </div>
+  <div class="card">
+    <div class="section-title">⚡ 快速手动打分</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px">没有 JSON？手动填也行：</p>
+    <div class="manual-row"><label>知识点：</label><input type="text" id="m-topic" placeholder="复盘了什么知识"></div>
+    <div class="manual-row"><label>简洁 (1-10)：</label><input type="number" id="m-simplicity" min="1" max="10" placeholder="7"></div>
+    <div class="manual-row"><label>准确 (1-10)：</label><input type="number" id="m-accuracy" min="1" max="10" placeholder="6"></div>
+    <div class="manual-row"><label>类比 (1-10)：</label><input type="number" id="m-analogy" min="1" max="10" placeholder="7"></div>
+    <div class="manual-row"><label>完整 (1-10)：</label><input type="number" id="m-completeness" min="1" max="10" placeholder="6"></div>
+    <div class="manual-row"><label>互动 (1-10)：</label><input type="number" id="m-engagement" min="1" max="10" placeholder="7"></div>
+    <div class="manual-row"><label>薄弱点：</label><input type="text" id="m-weak" placeholder="可选"></div>
+    <button class="btn btn-secondary" onclick="submitManual()">📥 手动录入</button>
+  </div>
+</div>
+
+<div class="page" id="page-history">
+  <div class="section-title" style="padding:0 4px;margin-bottom:14px">📚 复盘历史</div>
+  <div class="bookmark-grid" id="history-list"></div>
+</div>
+
+<div class="modal-overlay" id="detail-modal">
+  <button class="modal-close" onclick="closeModal()">&times;</button>
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<div class="page" id="page-settings">
+  <div class="card">
+    <div class="section-title">⚙️ 设置</div>
+    <div class="setting-row"><span class="setting-label">总复盘次数</span><span class="setting-value" id="total-sessions">0</span></div>
+    <div class="setting-row"><span class="setting-label">最高平均分</span><span class="setting-value" id="best-score">-</span></div>
+    <div class="setting-row"><span class="setting-label">数据存储</span><span class="setting-value">浏览器本地</span></div>
+  </div>
+  <div class="card">
+    <div class="section-title">💾 数据管理</div>
+    <button class="btn btn-secondary btn-small" onclick="exportData()" style="margin-top:0;margin-bottom:8px">📤 导出备份</button>
+    <label class="btn btn-secondary btn-small" style="margin-bottom:8px;text-align:center;cursor:pointer">📥 从备份恢复<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    <button class="btn btn-danger btn-small" onclick="clearData()">🗑 清除所有数据</button>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('home')"><span class="tab-icon">🏠</span>首页</button>
+  <button class="tab" onclick="switchTab('record')"><span class="tab-icon">📝</span>录入</button>
+  <button class="tab" onclick="switchTab('history')"><span class="tab-icon">📚</span>历史</button>
+  <button class="tab" onclick="switchTab('settings')"><span class="tab-icon">⚙️</span>设置</button>
+</div>
+
+<script>
+const STORAGE_KEY = 'feynman_data';
+const SCORE_KEYS = ['simplicity','accuracy','analogy','completeness','engagement'];
+const SCORE_LABELS = { simplicity:'简洁', accuracy:'准确', analogy:'类比', completeness:'完整', engagement:'互动' };
+
+const FEYNMAN_DOMAINS = {
+  cs: { name:'计算机', topics:['什么是递归？','解释 HTTP 和 HTTPS 的区别','什么是数据库索引？为什么能加速查询？','解释什么是 API','什么是面向对象编程？','解释 Git 的工作原理','什么是算法的时间复杂度？','解释 TCP 三次握手','什么是缓存？为什么需要它？','解释什么是云计算'] },
+  math: { name:'数学', topics:['什么是微积分？它能解决什么问题？','解释概率与统计的区别','什么是矩阵？有什么用？','解释黄金分割比','什么是博弈论？','解释正态分布是什么','什么是线性回归？','解释傅里叶变换的直觉理解'] },
+  science: { name:'自然科学', topics:['光为什么有波粒二象性？','DNA 如何决定生物的性状？','为什么天空是蓝色的？','解释相对论的基本概念','什么是量子纠缠？','解释热力学第二定律','进化论是怎么回事？','解释黑洞是什么'] },
+  economics: { name:'经济学', topics:['什么是通货膨胀？','解释供给与需求的关系','什么是 GDP？它能反映什么？','解释比较优势理论','什么是机会成本？','解释货币是怎么产生的','什么是经济周期？','解释边际效用递减'] },
+  philosophy: { name:'哲学/通识', topics:['什么是批判性思维？','解释归纳法与演绎法的区别','什么是认知偏差？举几个例子','解释费曼学习法本身','什么是第一性原理？','解释元认知是什么','什么是逻辑谬误？列举常见的','解释系统思维是什么'] }
+};
+
+let _cachedData = null;
+function loadData() { if(_cachedData) return _cachedData; try{const d=JSON.parse(localStorage.getItem(STORAGE_KEY));_cachedData=(d&&Array.isArray(d.records))?d:{records:[]};}catch{_cachedData={records:[]};} return _cachedData; }
+async function loadDataFromServer() { try{const r=await fetch('/api/feynman_data');if(r.ok){const d=await r.json();_cachedData=d;localStorage.setItem(STORAGE_KEY,JSON.stringify(d));return d;}}catch{} return loadData(); }
+function saveData(data) { _cachedData=data; localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); fetch('/api/feynman_data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{}); }
+
+function getAverageScores(data) { const r=data.records.slice(-5); if(!r.length)return{simplicity:0,accuracy:0,analogy:0,completeness:0,engagement:0}; const a={}; for(const k of SCORE_KEYS)a[k]=+(r.reduce((s,x)=>s+(x.scores[k]||0),0)/r.length).toFixed(1); return a; }
+function getTrend(data,key) { const r=data.records; if(r.length<2)return'flat'; const rc=r.slice(-3).map(x=>x.scores[key]||0),ol=r.slice(-6,-3).map(x=>x.scores[key]||0); if(!ol.length)return'flat'; const ra=rc.reduce((a,b)=>a+b,0)/rc.length,oa=ol.reduce((a,b)=>a+b,0)/ol.length; if(ra>oa+0.3)return'up';if(ra<oa-0.3)return'down';return'flat'; }
+function getWeakest(avg) { let m=11,mk='simplicity'; for(const k of SCORE_KEYS)if(avg[k]>0&&avg[k]<m){m=avg[k];mk=k;} return mk; }
+
+function generatePrompt(data) {
+  const avg=getAverageScores(data), weakest=getWeakest(avg), hasHistory=data.records.length>0, sessionNum=data.records.length+1;
+  const focusMap = {
+    simplicity:'用简单语言解释——避免术语，用日常用语替代专业词汇',
+    accuracy:'概念准确性——确保核心定义和原理传达正确',
+    analogy:'类比能力——多用比喻、生活中的例子来解释抽象概念',
+    completeness:'知识完整性——确保覆盖关键要点，不遗漏重要细节',
+    engagement:'互动回应——能对"小朋友"的追问给出清晰的补充解释'
+  };
+
+  let ctx='';
+  if(hasHistory){
+    const last=data.records[data.records.length-1];
+    const recentTopics=data.records.slice(-5).map(r=>r.topic).filter(Boolean).join('、');
+    ctx=`\n学习者档案：\n- 这是第 ${sessionNum} 次费曼复盘\n- 当前分数（满分10）：简洁 ${avg.simplicity}、准确 ${avg.accuracy}、类比 ${avg.analogy}、完整 ${avg.completeness}、互动 ${avg.engagement}\n- 最薄弱项：${SCORE_LABELS[weakest]}\n- 上次薄弱点：${last.weak_points?last.weak_points.join('、'):'无'}\n- 最近复盘主题（不要重复）：${recentTopics||'无'}\n`;
+  }
+
+  const prompt=`你是一个充满好奇心的 8 岁小朋友 🧒。你对一切都很好奇，会不停追问"为什么？""那是什么意思？""能再说简单一点吗？"
+
+你的任务是帮助一位学习者用【费曼学习法】复盘知识——通过"教会小朋友"来检验自己是否真正理解。
+
+第一步——选择知识点：
+请先问学习者："今天你想给我讲什么呀？🤔"
+如果学习者没有确定的主题，你可以推荐一个。
+${ctx}
+本次重点关注：${focusMap[weakest]||focusMap.simplicity}
+
+复盘规则：
+1. 学习者开始讲解后，你要像小朋友一样不断追问：
+   - "为什么呀？"
+   - "这个词是什么意思？能用更简单的话说吗？"
+   - "你能举个例子吗？就像…那样的？"
+   - "那如果…会怎么样呢？"
+2. 如果学习者用了专业术语，立刻说"这个词好难，我听不懂🥺"
+3. 如果解释得好，表示开心"哦！我懂了！就像…对不对？😊"
+4. 如果有概念解释错了，不直接纠正，而是用"可是我听别人说…是这样的，谁说得对呀？"来引导
+5. 每个知识点至少追问 3-4 轮，越来越深入
+6. 偶尔问一些"跨界"问题来测试学习者的融会贯通能力
+7. 保持小朋友的天真和好奇，让复盘过程有趣
+
+重要——结束时：
+当学习者说"总结"或"结束"时，你"变回"AI 助手，输出以下 JSON 评估：
+
+\`\`\`json
+{
+  "topic": "<复盘的知识点>",
+  "bookmark_label": "<2-4字摘要>",
+  "subject": "<所属学科/领域>",
+  "duration_min": <估计分钟数>,
+  "scores": {
+    "simplicity": <1-10>,
+    "accuracy": <1-10>,
+    "analogy": <1-10>,
+    "completeness": <1-10>,
+    "engagement": <1-10>
+  },
+  "weak_points": ["具体问题1", "具体问题2"],
+  "strong_points": ["亮点1", "亮点2"],
+  "knowledge_gaps": ["<发现的知识盲区1>", "<发现的知识盲区2>"],
+  "suggested_focus": "<下次复盘建议>",
+  "example_corrections": ["<错误/模糊解释> → <准确版本>", ...],
+  "detailed_advice": {
+    "simplicity": { "diagnosis": "<具体问题>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "accuracy": { "diagnosis": "<具体问题>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "analogy": { "diagnosis": "<具体问题>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "completeness": { "diagnosis": "<具体问题>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "engagement": { "diagnosis": "<具体问题>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" }
+  },
+  "suggested_revisit": "<复习建议>"
+}
+\`\`\`
+
+评分标准：
+- 1-3：解释混乱，小朋友完全听不懂
+- 4-6：基本能听懂，但有明显盲区或使用了太多术语
+- 7-9：解释清晰生动，善用类比，小朋友开心地听懂了
+- 10：深入浅出，举一反三，堪称教学大师
+${hasHistory?`\n参考上次分数：简洁 ${avg.simplicity}、准确 ${avg.accuracy}、类比 ${avg.analogy}、完整 ${avg.completeness}、互动 ${avg.engagement}`:''}\n\n好的小朋友已经准备好了！开始提问吧~🧒`;
+
+  return { prompt, weakest, sessionNum };
+}
+
+function switchTab(name) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(`page-${name}`).classList.add('active'); document.querySelectorAll('.tab')[['home','record','history','settings'].indexOf(name)].classList.add('active'); if(name==='home')refreshHome();if(name==='history')refreshHistory();if(name==='settings')refreshSettings(); }
+function showToast(msg) { const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500); }
+
+function refreshHome() {
+  const data=loadData(),avg=getAverageScores(data);
+  const grid=document.getElementById('scores-grid'),items=grid.querySelectorAll('.score-item');
+  SCORE_KEYS.forEach((k,i)=>{items[i].querySelector('.value').textContent=avg[k]>0?avg[k]:'-';const tr=getTrend(data,k),el=items[i].querySelector('.trend');el.textContent=tr==='up'?'↑':tr==='down'?'↓':'→';el.className=`trend trend-${tr}`;});
+  document.getElementById('streak').textContent=`📚 ${data.records.length} 次`;
+  const{prompt,weakest,sessionNum}=generatePrompt(data);
+  document.getElementById('today-topic').textContent=`费曼学习法 · 第${sessionNum}次`;
+  document.getElementById('today-focus').textContent=`📌 重点关注：${SCORE_LABELS[weakest]}`;
+  document.getElementById('prompt-text').textContent=prompt;
+  const c=document.getElementById('mini-chart'),recent=data.records.slice(-7);
+  if(!recent.length){c.innerHTML='<div class="empty-state" style="width:100%"><p style="font-size:13px">暂无数据</p></div>';return;}
+  c.innerHTML=recent.map(r=>{const a=SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5,h=Math.max(8,a*14),d=r.date?r.date.slice(5):'?';return`<div class="chart-bar-group"><div class="chart-bar" style="height:${h}px" title="${a.toFixed(1)}"></div><div class="chart-label">${d}</div></div>`;}).join('');
+}
+
+function refreshHistory() {
+  const data=loadData(),list=document.getElementById('history-list');
+  if(!data.records.length){list.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">📭</div><p>还没有复盘记录</p></div>';return;}
+  list.innerHTML=data.records.slice().reverse().map((r,idx)=>{const ri=data.records.length-1-idx;const avg=(SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5).toFixed(1);const date=r.date?r.date.slice(5).replace('-','/') :'?';const label=r.bookmark_label||(r.topic?r.topic.slice(0,6):'复盘');let vn=0;const key=r.bookmark_label||r.topic||'未知';for(let i=0;i<=ri;i++)if((data.records[i].bookmark_label||data.records[i].topic||'未知')===key)vn++;const cls=vn>=2?'done':'new',txt=`第${vn}次${vn>=2?'✓':''}`;return`<div class="bookmark" onclick="openDetail(${ri})"><div class="bm-date">${date}</div><div class="bm-topic">${label}</div><div class="bm-score">${avg}</div><div class="bm-visit ${cls}">${txt}</div></div>`;}).join('');
+}
+
+function openDetail(idx) {
+  const data=loadData(),r=data.records[idx];if(!r)return;
+  const avg=(SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5).toFixed(1);
+  const label=r.bookmark_label||r.topic||'复盘';
+  const key=r.bookmark_label||r.topic||'未知';let vn=0;for(let i=0;i<=idx;i++)if((data.records[i].bookmark_label||data.records[i].topic||'未知')===key)vn++;
+  const bars=SCORE_KEYS.map(k=>{const v=r.scores[k]||0,p=v*10,c=v>=7?'var(--green)':v>=4?'var(--yellow)':'var(--accent)';return`<div class="score-bar-row"><span class="score-bar-label">${SCORE_LABELS[k]}</span><div class="score-bar-track"><div class="score-bar-fill" style="width:${p}%;background:${c}"></div></div><span class="score-bar-value">${v}</span></div>`;}).join('');
+  let advHTML='';if(r.detailed_advice){advHTML='<div class="section-title" style="margin-top:20px">💡 各项建议</div>';for(const k of SCORE_KEYS){const a=r.detailed_advice[k];if(!a)continue;advHTML+=`<div class="advice-card"><h4>${SCORE_LABELS[k]}（${r.scores[k]||'-'}分）</h4><div class="diagnosis">${a.diagnosis||''}</div>${a.exercises&&a.exercises.length?'<ul class="exercises">'+a.exercises.map(e=>`<li>${e}</li>`).join('')+'</ul>':''}${a.target?`<div class="target-text">🎯 ${a.target}</div>`:''}</div>`;}}
+  let corHTML='';if(r.example_corrections&&r.example_corrections.length)corHTML=`<div class="card" style="margin-top:10px"><div class="section-title">📝 概念修正</div>${r.example_corrections.map(c=>`<div style="font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.5">• ${c}</div>`).join('')}</div>`;
+  let gapHTML='';if(r.knowledge_gaps&&r.knowledge_gaps.length)gapHTML=`<div class="card" style="margin-top:10px"><div class="section-title">🕳️ 知识盲区</div>${r.knowledge_gaps.map(g=>`<div style="font-size:12px;color:var(--yellow);margin-bottom:6px;line-height:1.5">• ${g}</div>`).join('')}</div>`;
+  let swHTML='';if((r.weak_points&&r.weak_points.length)||(r.strong_points&&r.strong_points.length)){swHTML='<div class="card" style="margin-top:10px">';if(r.strong_points&&r.strong_points.length)swHTML+=`<div style="font-size:13px;color:var(--green);margin-bottom:8px">💪 ${r.strong_points.join('  ·  ')}</div>`;if(r.weak_points&&r.weak_points.length)swHTML+=`<div style="font-size:13px;color:var(--yellow)">⚠️ ${r.weak_points.join('  ·  ')}</div>`;swHTML+='</div>';}
+  document.getElementById('modal-content').innerHTML=`<div class="modal-header"><h2>🧒 ${label}</h2><div class="meta">${r.date||'?'} ${r.time||''} · 综合 ${avg} · 第${vn}次${r.subject?' · '+r.subject:''}${r.duration_min?' · '+r.duration_min+'分钟':''}</div></div><div class="card"><div class="section-title">📊 五维评分</div>${bars}</div>${swHTML}${gapHTML}${advHTML}${corHTML}${r.suggested_revisit?`<div class="card" style="margin-top:10px"><div class="section-title">🔄 复习建议</div><div style="font-size:13px;color:var(--text2);line-height:1.6">${r.suggested_revisit}</div></div>`:''}
+    <div class="card" style="margin-top:10px"><div class="section-title">🔄 生成复习提示词</div><p style="font-size:12px;color:var(--text3);margin-bottom:10px">针对「${label}」再次费曼复盘</p><button class="btn btn-primary" onclick="genReview(${idx})" style="background:#3b82f6;box-shadow:0 4px 20px #3b82f630">📋 生成并复制</button><div class="review-prompt-box" id="review-prompt-${idx}" style="display:none"></div></div>`;
+  document.getElementById('detail-modal').classList.add('show');document.body.style.overflow='hidden';
+}
+function closeModal(){document.getElementById('detail-modal').classList.remove('show');document.body.style.overflow='';}
+
+function genReview(idx){
+  const data=loadData(),r=data.records[idx];if(!r)return;
+  const prompt=`你是一个充满好奇心的 8 岁小朋友🧒。这是复习环节——学习者要把之前讲过的知识再讲一遍给你听。\n\n上次讲的知识点：「${r.topic}」\n上次分数：简洁${r.scores.simplicity}、准确${r.scores.accuracy}、类比${r.scores.analogy}、完整${r.scores.completeness}、互动${r.scores.engagement}\n${r.knowledge_gaps&&r.knowledge_gaps.length?'知识盲区：'+r.knowledge_gaps.join('、'):''}${r.weak_points&&r.weak_points.length?'\n薄弱点：'+r.weak_points.join('、'):''}\n\n这次要求：\n1. 从上次的知识盲区切入追问\n2. 要求学习者用全新的类比来解释\n3. 追问更深入的"为什么"\n4. 结束时输出同格式 JSON\n\n小朋友准备好了！来吧~🧒`;
+  const box=document.getElementById(`review-prompt-${idx}`);box.textContent=prompt;box.style.display='block';
+  navigator.clipboard.writeText(prompt).then(()=>showToast('✅ 已复制！')).catch(()=>{const ta=document.createElement('textarea');ta.value=prompt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ 已复制！');});
+}
+
+function refreshSettings(){const data=loadData();document.getElementById('total-sessions').textContent=data.records.length;if(data.records.length>0){const b=Math.max(...data.records.map(r=>SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5));document.getElementById('best-score').textContent=b.toFixed(1);}}
+
+function copyPrompt(){const t=document.getElementById('prompt-text').textContent;navigator.clipboard.writeText(t).then(()=>showToast('✅ 已复制！去 Gemini 粘贴吧')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ 已复制！');});}
+
+function submitRecord(){
+  const input=document.getElementById('json-input').value.trim();if(!input){showToast('⚠️ 请先粘贴 JSON');return;}
+  try{let js=input;const m=input.match(/```(?:json)?\s*([\s\S]*?)```/);if(m)js=m[1].trim();const p=JSON.parse(js);if(!p.scores)throw new Error('缺少 scores');
+  const record={date:new Date().toISOString().split('T')[0],time:new Date().toTimeString().split(' ')[0],topic:p.topic||'未记录',bookmark_label:p.bookmark_label||'',subject:p.subject||'',scores:{},weak_points:p.weak_points||[],strong_points:p.strong_points||[],knowledge_gaps:p.knowledge_gaps||[],suggested_focus:p.suggested_focus||'',duration_min:p.duration_min||null,example_corrections:p.example_corrections||[],detailed_advice:p.detailed_advice||null,suggested_revisit:p.suggested_revisit||''};
+  for(const k of SCORE_KEYS){const v=p.scores[k];record.scores[k]=(typeof v==='number'&&v>=1&&v<=10)?v:5;}
+  const data=loadData();data.records.push(record);saveData(data);document.getElementById('json-input').value='';showToast('🎉 记录已保存！');switchTab('home');
+  }catch(e){showToast('❌ JSON 格式有误：'+e.message);}
+}
+
+function submitManual(){
+  const scores={};let valid=true;for(const k of SCORE_KEYS){const v=parseInt(document.getElementById(`m-${k}`).value);if(isNaN(v)||v<1||v>10){valid=false;break;}scores[k]=v;}
+  if(!valid){showToast('⚠️ 请填写所有分数（1-10）');return;}
+  const record={date:new Date().toISOString().split('T')[0],time:new Date().toTimeString().split(' ')[0],topic:document.getElementById('m-topic').value||'手动录入',bookmark_label:'',subject:'',scores,weak_points:document.getElementById('m-weak').value?[document.getElementById('m-weak').value]:[],strong_points:[],knowledge_gaps:[],suggested_focus:'',detailed_advice:null,suggested_revisit:''};
+  const data=loadData();data.records.push(record);saveData(data);
+  ['m-topic','m-simplicity','m-accuracy','m-analogy','m-completeness','m-engagement','m-weak'].forEach(id=>document.getElementById(id).value='');
+  showToast('🎉 记录已保存！');switchTab('home');
+}
+
+function exportData(){const d=loadData(),b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=`feynman_data_${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(u);showToast('📤 已导出');}
+function clearData(){if(confirm('确定清除所有复盘记录？')){const e={records:[]};_cachedData=e;localStorage.removeItem(STORAGE_KEY);fetch('/api/feynman_data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(e)}).catch(()=>{});showToast('🗑 已清除');refreshHome();}}
+function importData(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const imp=JSON.parse(e.target.result);if(!imp.records||!Array.isArray(imp.records))throw new Error('无效文件');const cur=loadData();const choice=cur.records.length>0?confirm(`当前有${cur.records.length}条。确定→合并，取消→覆盖`):false;if(choice){const ex=new Set(cur.records.map(r=>`${r.date}_${r.time}_${r.topic}`));const nr=imp.records.filter(r=>!ex.has(`${r.date}_${r.time}_${r.topic}`));cur.records.push(...nr);saveData(cur);showToast(`✅ 新增${nr.length}条`);}else{saveData(imp);showToast(`✅ 共${imp.records.length}条`);}refreshHome();}catch(err){showToast('❌ '+err.message);}};reader.readAsText(file);event.target.value='';}
+
+refreshHome();loadDataFromServer().then(()=>refreshHome());
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>

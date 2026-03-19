@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0a">
+<title>翻译训练 - SpeakUp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a; --card: #141414; --card2: #1c1c1c;
+  --accent: #3b82f6; --accent2: #60a5fa; --accent-glow: #3b82f630;
+  --green: #22c55e; --red: #ef4444; --yellow: #ff6b35;
+  --text: #f0f0f0; --text2: #a0a0a0; --text3: #555; --radius: 4px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:80px; -webkit-tap-highlight-color:transparent; position:relative; overflow-x:hidden; }
+body::before { content:''; position:fixed; top:-40%; right:-20%; width:60vw; height:60vw; background:var(--accent); clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%); opacity:0.03; z-index:0; pointer-events:none; }
+body::after { content:''; position:fixed; bottom:-30%; left:-15%; width:50vw; height:50vw; background:var(--accent2); clip-path:polygon(0 0,100% 0,100% 100%); opacity:0.025; z-index:0; pointer-events:none; }
+
+.header { padding:20px 20px 10px; display:flex; justify-content:space-between; align-items:center; position:relative; z-index:1; }
+.header h1 { font-size:24px; font-weight:700; letter-spacing:-0.5px; }
+.header h1 span { color:var(--accent2); text-shadow:0 0 30px var(--accent-glow); }
+.back-btn { color:var(--text2); text-decoration:none; font-size:14px; display:flex; align-items:center; gap:4px; font-weight:600; }
+.streak { background:linear-gradient(135deg,#3b82f620,#3b82f610); border:1px solid #3b82f640; padding:6px 14px; border-radius:2px; font-size:13px; color:var(--accent2); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+
+.tab-bar { position:fixed; bottom:0; left:0; right:0; background:#0d0d0d; border-top:1px solid #3b82f630; display:flex; z-index:100; padding-bottom:env(safe-area-inset-bottom); }
+.tab { flex:1; padding:12px 0 10px; text-align:center; font-size:11px; color:var(--text3); cursor:pointer; transition:all 0.2s; border:none; background:none; text-transform:uppercase; letter-spacing:0.5px; position:relative; }
+.tab.active { color:var(--accent2); }
+.tab.active::after { content:''; position:absolute; top:0; left:20%; right:20%; height:2px; background:var(--accent); box-shadow:0 0 10px var(--accent-glow); }
+.tab-icon { font-size:20px; display:block; margin-bottom:2px; }
+
+.page { display:none; padding:0 16px 20px; position:relative; z-index:1; }
+.page.active { display:block; }
+
+.card { background:var(--card); border-radius:var(--radius); padding:20px; margin-bottom:14px; border:1px solid #ffffff08; border-left:3px solid var(--accent); position:relative; }
+.prompt-card { background:linear-gradient(135deg,#3b82f608,#141414); border:1px solid #3b82f625; border-left:3px solid var(--accent); }
+
+.scores-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px; }
+.score-item { text-align:center; padding:12px 4px; background:var(--card2); border-radius:2px; border-bottom:2px solid var(--accent); transition:transform 0.2s,box-shadow 0.2s; }
+.score-item:hover { transform:translateY(-2px); box-shadow:0 4px 20px var(--accent-glow); }
+.score-item .value { font-size:24px; font-weight:700; color:var(--accent2); text-shadow:0 0 20px var(--accent-glow); }
+.score-item .label { font-size:10px; color:var(--text3); margin-top:4px; text-transform:uppercase; letter-spacing:1px; }
+.score-item .trend { font-size:12px; margin-top:2px; font-weight:700; }
+.trend-up { color:var(--green); } .trend-down { color:var(--red); } .trend-flat { color:var(--text3); }
+
+.prompt-topic { display:inline-block; background:var(--accent); color:white; font-size:11px; font-weight:700; padding:4px 12px; border-radius:2px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+.prompt-focus { font-size:13px; color:var(--yellow); margin-bottom:12px; font-weight:500; }
+.prompt-text { background:#080808; border-radius:2px; padding:14px; font-size:13px; line-height:1.7; color:var(--text2); max-height:200px; overflow-y:auto; white-space:pre-wrap; word-break:break-word; border:1px solid #ffffff08; }
+
+.btn { display:inline-flex; align-items:center; gap:6px; padding:14px 24px; border:none; border-radius:2px; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.15s; font-family:inherit; text-transform:uppercase; letter-spacing:0.5px; }
+.btn:active { transform:scale(0.97); }
+.btn-primary { background:var(--accent); color:white; width:100%; justify-content:center; margin-top:14px; box-shadow:0 4px 20px var(--accent-glow); }
+.btn-primary:hover { background:var(--accent2); box-shadow:0 6px 30px var(--accent-glow); }
+.btn-secondary { background:var(--card2); color:var(--text); width:100%; justify-content:center; margin-top:10px; border:1px solid #ffffff10; }
+.btn-small { padding:10px 16px; font-size:12px; }
+.btn-danger { background:#dc262615; color:var(--red); border:1px solid #dc262640; }
+
+.paste-area { width:100%; min-height:120px; background:#080808; border:1px solid #ffffff12; border-left:3px solid var(--accent); border-radius:2px; padding:14px; color:var(--text); font-size:13px; font-family:'Courier New',monospace; resize:vertical; outline:none; transition:border-color 0.2s; }
+.paste-area:focus { border-color:var(--accent); box-shadow:0 0 20px var(--accent-glow); }
+.paste-area::placeholder { color:var(--text3); }
+
+.section-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:6px; text-transform:uppercase; letter-spacing:1px; }
+
+.bookmark-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px; }
+.bookmark { background:var(--card); border:1px solid #ffffff08; border-left:3px solid var(--accent); border-radius:2px; padding:14px 10px; cursor:pointer; transition:all 0.15s; display:flex; flex-direction:column; align-items:center; gap:6px; min-height:140px; position:relative; }
+.bookmark:hover,.bookmark:active { background:var(--card2); border-left-color:var(--accent2); transform:translateY(-2px); box-shadow:0 4px 20px var(--accent-glow); }
+.bookmark .bm-date { font-size:11px; color:var(--text3); font-weight:600; }
+.bookmark .bm-topic { font-size:12px; color:var(--text); text-align:center; line-height:1.3; flex:1; display:flex; align-items:center; word-break:break-all; overflow:hidden; }
+.bookmark .bm-score { font-size:22px; font-weight:700; color:var(--accent2); text-shadow:0 0 15px var(--accent-glow); }
+.bookmark .bm-visit { font-size:10px; padding:2px 8px; border-radius:2px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+.bm-visit.new { background:var(--accent); color:white; }
+.bm-visit.done { background:var(--green); color:#0a0a0a; }
+
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:200; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.modal-overlay.show { display:block; }
+.modal { background:var(--bg); min-height:100vh; padding:20px 16px 100px; position:relative; z-index:1; }
+.modal-close { position:fixed; top:16px; right:16px; width:36px; height:36px; border:1px solid #ffffff20; background:var(--card); color:var(--text); border-radius:2px; font-size:18px; cursor:pointer; z-index:210; display:flex; align-items:center; justify-content:center; }
+.modal-header { margin-bottom:20px; }
+.modal-header h2 { font-size:18px; font-weight:700; margin-bottom:6px; }
+.modal-header .meta { font-size:12px; color:var(--text3); }
+
+.score-bar-row { display:flex; align-items:center; margin-bottom:12px; gap:10px; }
+.score-bar-label { font-size:12px; color:var(--text2); min-width:36px; text-align:right; font-weight:600; }
+.score-bar-track { flex:1; height:8px; background:var(--card2); border-radius:1px; overflow:hidden; }
+.score-bar-fill { height:100%; border-radius:1px; transition:width 0.5s ease; }
+.score-bar-value { font-size:14px; font-weight:700; min-width:24px; color:var(--accent2); }
+
+.advice-card { background:var(--card); border-left:3px solid var(--accent); border-radius:2px; padding:14px; margin-bottom:10px; }
+.advice-card h4 { font-size:13px; font-weight:700; color:var(--accent2); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; }
+.advice-card .diagnosis { font-size:13px; color:var(--text); margin-bottom:8px; line-height:1.5; }
+.advice-card .exercises { font-size:12px; color:var(--text2); line-height:1.6; }
+.advice-card .exercises li { margin-left:16px; margin-bottom:4px; }
+.advice-card .target-text { font-size:12px; color:var(--yellow); margin-top:8px; font-weight:500; }
+
+.review-prompt-box { background:#080808; border:1px solid #ffffff08; border-left:3px solid var(--green); border-radius:2px; padding:14px; font-size:12px; line-height:1.6; color:var(--text2); max-height:200px; overflow-y:auto; white-space:pre-wrap; word-break:break-word; margin-top:10px; }
+
+.chart-container { height:160px; display:flex; align-items:flex-end; gap:6px; padding:10px 0; }
+.chart-bar-group { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.chart-bar { width:100%; max-width:32px; background:linear-gradient(180deg,var(--accent),var(--accent2)); border-radius:1px; transition:height 0.5s ease; min-height:4px; box-shadow:0 0 10px var(--accent-glow); }
+.chart-label { font-size:9px; color:var(--text3); text-align:center; text-transform:uppercase; }
+
+.setting-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid #ffffff08; }
+.setting-row:last-child { border-bottom:none; }
+.setting-label { font-size:14px; color:var(--text2); }
+.setting-value { font-size:14px; color:var(--accent2); font-weight:700; }
+
+.toast { position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-100px); background:var(--accent); color:white; padding:12px 24px; border-radius:2px; font-size:14px; font-weight:700; z-index:999; transition:transform 0.3s ease; white-space:nowrap; box-shadow:0 4px 20px var(--accent-glow); text-transform:uppercase; letter-spacing:0.5px; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+.empty-state { text-align:center; padding:40px 20px; color:var(--text3); }
+.empty-state .icon { font-size:48px; margin-bottom:12px; }
+.empty-state p { font-size:14px; line-height:1.6; }
+
+.manual-row { display:flex; align-items:center; margin-bottom:10px; gap:10px; }
+.manual-row label { font-size:13px; color:var(--text2); min-width:90px; }
+.manual-row input { flex:1; padding:8px 12px; background:var(--bg); border:1px solid #ffffff15; border-radius:8px; color:var(--text); font-size:14px; outline:none; font-family:inherit; }
+.manual-row input:focus { border-color:var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="header">
+  <a href="./index.html" class="back-btn">← 返回</a>
+  <h1>📝 翻译<span>训练</span></h1>
+  <div class="streak" id="streak">🔥 0 天</div>
+</div>
+
+<!-- PAGE: HOME -->
+<div class="page active" id="page-home">
+  <div class="card">
+    <div class="section-title">📊 当前水平</div>
+    <div class="scores-grid" id="scores-grid">
+      <div class="score-item"><div class="value">-</div><div class="label">准确</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">流畅</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">词汇</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">语法</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">文体</div><div class="trend">-</div></div>
+    </div>
+  </div>
+
+  <div class="card prompt-card">
+    <div class="section-title">🎯 今日翻译训练</div>
+    <div class="prompt-topic" id="today-topic">加载中...</div>
+    <div class="prompt-focus" id="today-focus"></div>
+    <div class="prompt-text" id="prompt-text">正在生成提示词...</div>
+    <button class="btn btn-primary" onclick="copyPrompt()">📋 复制提示词到 Gemini</button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">📈 近 7 次趋势</div>
+    <div class="chart-container" id="mini-chart"></div>
+  </div>
+</div>
+
+<!-- PAGE: RECORD -->
+<div class="page" id="page-record">
+  <div class="card">
+    <div class="section-title">📝 录入翻译结果</div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.6">
+      翻译练习结束后，跟 Gemini 说 <strong style="color:var(--yellow)">"let's wrap up"</strong><br>
+      Gemini 会自动输出 JSON 评分 + 建议，直接粘贴到下方：
+    </p>
+    <textarea class="paste-area" id="json-input" placeholder='粘贴 Gemini 输出的完整 JSON（含评分+建议）'></textarea>
+    <button class="btn btn-primary" onclick="submitRecord()">✅ 录入记录</button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">⚡ 快速手动打分</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px">没有 JSON？手动填也行：</p>
+    <div id="manual-inputs">
+      <div class="manual-row"><label>话题：</label><input type="text" id="m-topic" placeholder="翻译了什么内容"></div>
+      <div class="manual-row"><label>准确 (1-10)：</label><input type="number" id="m-accuracy" min="1" max="10" placeholder="7"></div>
+      <div class="manual-row"><label>流畅 (1-10)：</label><input type="number" id="m-fluency" min="1" max="10" placeholder="6"></div>
+      <div class="manual-row"><label>词汇 (1-10)：</label><input type="number" id="m-vocabulary" min="1" max="10" placeholder="7"></div>
+      <div class="manual-row"><label>语法 (1-10)：</label><input type="number" id="m-grammar" min="1" max="10" placeholder="8"></div>
+      <div class="manual-row"><label>文体 (1-10)：</label><input type="number" id="m-style" min="1" max="10" placeholder="6"></div>
+      <div class="manual-row"><label>薄弱点：</label><input type="text" id="m-weak" placeholder="可选"></div>
+    </div>
+    <button class="btn btn-secondary" onclick="submitManual()">📥 手动录入</button>
+  </div>
+</div>
+
+<!-- PAGE: HISTORY -->
+<div class="page" id="page-history">
+  <div class="section-title" style="padding:0 4px;margin-bottom:14px">📚 翻译历史</div>
+  <div class="bookmark-grid" id="history-list"></div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <button class="modal-close" onclick="closeModal()">&times;</button>
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<!-- PAGE: SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="card">
+    <div class="section-title">⚙️ 设置</div>
+    <div class="setting-row"><span class="setting-label">总练习次数</span><span class="setting-value" id="total-sessions">0</span></div>
+    <div class="setting-row"><span class="setting-label">最高平均分</span><span class="setting-value" id="best-score">-</span></div>
+    <div class="setting-row"><span class="setting-label">数据存储</span><span class="setting-value">浏览器本地</span></div>
+  </div>
+  <div class="card">
+    <div class="section-title">💾 数据管理</div>
+    <button class="btn btn-secondary btn-small" onclick="exportData()" style="margin-top:0;margin-bottom:8px">📤 导出备份 (JSON)</button>
+    <label class="btn btn-secondary btn-small" style="margin-bottom:8px;text-align:center;cursor:pointer">📥 从备份恢复<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    <button class="btn btn-danger btn-small" onclick="clearData()">🗑 清除所有数据</button>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('home')"><span class="tab-icon">🏠</span>首页</button>
+  <button class="tab" onclick="switchTab('record')"><span class="tab-icon">📝</span>录入</button>
+  <button class="tab" onclick="switchTab('history')"><span class="tab-icon">📚</span>历史</button>
+  <button class="tab" onclick="switchTab('settings')"><span class="tab-icon">⚙️</span>设置</button>
+</div>
+
+<script>
+const STORAGE_KEY = 'translate_data';
+const SCORE_KEYS = ['accuracy','fluency','vocabulary','grammar','style'];
+const SCORE_LABELS = { accuracy:'准确', fluency:'流畅', vocabulary:'词汇', grammar:'语法', style:'文体' };
+
+const TRANSLATE_TOPICS = {
+  daily: { name:'日常生活', beginner:['介绍你的家乡和特色美食','描述你一天的日常安排','谈谈你最喜欢的节日'], intermediate:['比较中西方餐桌礼仪的差异','描述一次难忘的旅行经历','讨论城市与乡村生活的优缺点'], advanced:['论述现代社会中工作与生活平衡的重要性','分析社交媒体对人际关系的影响','探讨传统文化在现代社会中的传承'] },
+  tech: { name:'科技', beginner:['描述你最常用的三个手机应用','谈谈你对人工智能的了解','介绍一款你喜欢的电子产品'], intermediate:['讨论在线教育的优势和局限性','分析社交媒体对青少年的影响','比较不同品牌手机的特点'], advanced:['论述人工智能对就业市场的影响','探讨数据隐私与技术发展的矛盾','分析区块链技术的应用前景'] },
+  culture: { name:'文化', beginner:['介绍一个中国传统节日','描述你最近看的一部电影','谈谈你喜欢的一本书'], intermediate:['比较中西方教育理念的差异','讨论全球化对本地文化的影响','分析流行音乐的文化意义'], advanced:['论述文化多样性对社会发展的重要性','探讨语言与文化认同的关系','分析全球化背景下文化融合与冲突'] },
+  business: { name:'商务', beginner:['描述你理想的工作环境','介绍一家你欣赏的公司','谈谈你的职业规划'], intermediate:['撰写一封商务合作邮件','描述一个产品的市场推广方案','讨论远程工作的利弊'], advanced:['分析中国企业国际化面临的挑战','论述可持续发展与企业社会责任','撰写一份投资分析报告摘要'] },
+  academic: { name:'学术', beginner:['描述你的专业和为什么选择它','介绍一个你感兴趣的科学发现','谈谈阅读对你的影响'], intermediate:['总结一篇科普文章的主要观点','描述一个实验的步骤和结果','讨论批判性思维的重要性'], advanced:['翻译一段学术论文摘要','论述定性研究与定量研究的区别','分析跨学科研究的趋势和挑战'] }
+};
+
+let _cachedData = null;
+
+function loadData() {
+  if (_cachedData) return _cachedData;
+  try { const d = JSON.parse(localStorage.getItem(STORAGE_KEY)); _cachedData = (d && Array.isArray(d.records)) ? d : { records:[] }; }
+  catch { _cachedData = { records:[] }; }
+  return _cachedData;
+}
+
+async function loadDataFromServer() {
+  try {
+    const resp = await fetch('/api/translate_data');
+    if (resp.ok) { const data = await resp.json(); _cachedData = data; localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); return data; }
+  } catch {}
+  return loadData();
+}
+
+function saveData(data) {
+  _cachedData = data;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  fetch('/api/translate_data', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) }).catch(()=>{});
+}
+
+function getLevel(avg) {
+  const overall = Object.values(avg).reduce((a,b)=>a+b,0)/5;
+  if (overall >= 7) return 'advanced';
+  if (overall >= 4) return 'intermediate';
+  return 'beginner';
+}
+
+function selectTopic(data) {
+  const records = data.records;
+  const categories = Object.keys(TRANSLATE_TOPICS);
+  let lastCategory = null;
+  if (records.length > 0) {
+    const lastTopic = records[records.length-1].topic || '';
+    for (const cat of categories) {
+      const all = [...TRANSLATE_TOPICS[cat].beginner,...TRANSLATE_TOPICS[cat].intermediate,...TRANSLATE_TOPICS[cat].advanced];
+      if (all.some(t => lastTopic.includes(t.substring(0,10)))) { lastCategory = cat; break; }
+    }
+  }
+  let available = categories.filter(c => c !== lastCategory);
+  if (!available.length) available = categories;
+  const category = available[Math.floor(Math.random()*available.length)];
+  const avgScores = getAverageScores(data);
+  const level = getLevel(avgScores);
+  const topics = TRANSLATE_TOPICS[category][level];
+  const topic = topics[Math.floor(Math.random()*topics.length)];
+  return { category, categoryName:TRANSLATE_TOPICS[category].name, level, topic };
+}
+
+function getAverageScores(data) {
+  const recent = data.records.slice(-5);
+  if (!recent.length) return { accuracy:0, fluency:0, vocabulary:0, grammar:0, style:0 };
+  const avg = {};
+  for (const key of SCORE_KEYS) avg[key] = +(recent.reduce((s,r)=>s+(r.scores[key]||0),0)/recent.length).toFixed(1);
+  return avg;
+}
+
+function getTrend(data, key) {
+  const records = data.records;
+  if (records.length < 2) return 'flat';
+  const recent = records.slice(-3).map(r=>r.scores[key]||0);
+  const older = records.slice(-6,-3).map(r=>r.scores[key]||0);
+  if (!older.length) return 'flat';
+  const ra = recent.reduce((a,b)=>a+b,0)/recent.length;
+  const oa = older.reduce((a,b)=>a+b,0)/older.length;
+  if (ra > oa+0.3) return 'up';
+  if (ra < oa-0.3) return 'down';
+  return 'flat';
+}
+
+function getWeakest(avg) {
+  let min=11, mk='accuracy';
+  for (const k of SCORE_KEYS) if (avg[k]>0 && avg[k]<min) { min=avg[k]; mk=k; }
+  return mk;
+}
+
+function getStreak(data) {
+  if (!data.records.length) return 0;
+  let streak=0; const today=new Date().toISOString().split('T')[0]; let d=new Date();
+  for (let i=0;i<365;i++) {
+    const ds=d.toISOString().split('T')[0];
+    if (data.records.some(r=>r.date===ds)) streak++;
+    else if (ds!==today) break;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+function generatePrompt(data) {
+  const avgScores = getAverageScores(data);
+  const weakest = getWeakest(avgScores);
+  const hasHistory = data.records.length > 0;
+  const sessionNum = data.records.length + 1;
+
+  const focusMap = {
+    accuracy: 'translation accuracy — ensure the meaning is conveyed precisely without additions or omissions',
+    fluency: 'translation fluency — make the translated text read naturally in the target language',
+    vocabulary: 'vocabulary precision — use more accurate and advanced word choices',
+    grammar: 'grammar correctness — pay attention to sentence structure, tenses, and articles',
+    style: 'style matching — ensure the register and tone match the source text'
+  };
+
+  let contextBlock = '';
+  if (hasHistory) {
+    const last = data.records[data.records.length-1];
+    const recent5 = data.records.slice(-5);
+    const recentTopics = recent5.map(r=>r.topic).filter(Boolean).join(', ');
+    contextBlock = `
+LEARNER PROFILE:
+- This is translation session #${sessionNum}
+- Current scores (out of 10): Accuracy ${avgScores.accuracy}, Fluency ${avgScores.fluency}, Vocabulary ${avgScores.vocabulary}, Grammar ${avgScores.grammar}, Style ${avgScores.style}
+- Weakest area: ${SCORE_LABELS[weakest]} (${weakest})
+- Last session weak points: ${last.weak_points ? last.weak_points.join(', ') : 'N/A'}
+- Last suggested focus: ${last.suggested_focus || 'N/A'}
+- Recent topics (DO NOT repeat): ${recentTopics || 'N/A'}
+`;
+  }
+
+  const levelHint = hasHistory ? getLevel(avgScores) : 'beginner';
+  const levelLabel = levelHint==='beginner'?'入门级':levelHint==='intermediate'?'中级':'高级';
+
+  const prompt = `You are an expert English translation coach working with a Chinese learner on Chinese-to-English translation skills.
+
+YOUR FIRST TASK - CHOOSE A TRANSLATION EXERCISE:
+Based on the learner profile below, design a translation exercise that:
+1. Provides 2-3 Chinese paragraphs (150-300 characters total) for the learner to translate into English
+2. The content should be interesting, relevant, and match the learner's level: ${levelLabel}
+3. Targets their weakest skill area naturally
+4. Does NOT repeat recent topics
+5. Can be from ANY domain: news, essays, literature, business, academic, daily conversation, social commentary, etc.
+${contextBlock}
+FOCUS AREA: ${focusMap[weakest] || focusMap.accuracy}
+
+COACHING WORKFLOW:
+1. Present the Chinese source text clearly
+2. Ask the learner to translate it into English
+3. After they submit their translation, provide detailed feedback:
+   - Compare their translation with a reference translation
+   - Point out specific errors (accuracy, grammar, vocabulary, style)
+   - Suggest better alternatives for key phrases
+   - Highlight what they did well
+4. Optionally give a second, slightly harder passage
+5. Pay special attention to the FOCUS AREA above
+
+IMPORTANT - AT THE END:
+When the learner says "let's wrap up" or "总结", provide a performance summary in this EXACT JSON format:
+
+\`\`\`json
+{
+  "topic": "<the translation topic, in Chinese>",
+  "bookmark_label": "<2-4 Chinese characters summarizing the topic>",
+  "duration_min": <estimated minutes>,
+  "scores": {
+    "accuracy": <1-10>,
+    "fluency": <1-10>,
+    "vocabulary": <1-10>,
+    "grammar": <1-10>,
+    "style": <1-10>
+  },
+  "weak_points": ["specific point 1", "specific point 2"],
+  "strong_points": ["specific point 1", "specific point 2"],
+  "suggested_focus": "<one concrete suggestion for next session>",
+  "example_corrections": ["<their translation> → <better version>", ...],
+  "detailed_advice": {
+    "accuracy": { "diagnosis": "<specific issues>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "fluency": { "diagnosis": "<specific issues>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "vocabulary": { "diagnosis": "<specific issues>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "grammar": { "diagnosis": "<specific issues>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "style": { "diagnosis": "<specific issues>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" }
+  },
+  "suggested_revisit": "<when and how to revisit>"
+}
+\`\`\`
+
+SCORING RUBRIC:
+- 1-3: Major errors, meaning distorted, hard to understand
+- 4-6: Functional but noticeable gaps, some mistranslations
+- 7-9: Good to excellent, natural and accurate, minor issues
+- 10: Professional translator level
+${hasHistory ? `\nREFERENCE - Previous scores: Accuracy ${avgScores.accuracy}, Fluency ${avgScores.fluency}, Vocabulary ${avgScores.vocabulary}, Grammar ${avgScores.grammar}, Style ${avgScores.style}. Score relative to these.` : ''}
+
+Start the translation exercise now! Present the Chinese text for the learner to translate.`;
+
+  return { prompt, weakest, levelLabel, sessionNum };
+}
+
+// ==================== UI ====================
+function switchTab(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.querySelectorAll('.tab')[['home','record','history','settings'].indexOf(name)].classList.add('active');
+  if (name==='home') refreshHome();
+  if (name==='history') refreshHistory();
+  if (name==='settings') refreshSettings();
+}
+
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+function refreshHome() {
+  const data=loadData(), avg=getAverageScores(data);
+  const grid=document.getElementById('scores-grid'), items=grid.querySelectorAll('.score-item');
+  SCORE_KEYS.forEach((key,i)=>{
+    items[i].querySelector('.value').textContent=avg[key]>0?avg[key]:'-';
+    const trend=getTrend(data,key), el=items[i].querySelector('.trend');
+    el.textContent=trend==='up'?'↑':trend==='down'?'↓':'→';
+    el.className=`trend trend-${trend}`;
+  });
+  document.getElementById('streak').textContent=`🔥 ${getStreak(data)} 天`;
+  const {prompt,weakest,levelLabel,sessionNum}=generatePrompt(data);
+  document.getElementById('today-topic').textContent=`AI 自适应 · ${levelLabel} · 第${sessionNum}次`;
+  document.getElementById('today-focus').textContent=`📌 重点突破：${SCORE_LABELS[weakest]}`;
+  document.getElementById('prompt-text').textContent=prompt;
+  renderMiniChart(data);
+}
+
+function renderMiniChart(data) {
+  const c=document.getElementById('mini-chart'), recent=data.records.slice(-7);
+  if (!recent.length) { c.innerHTML='<div class="empty-state" style="width:100%"><p style="font-size:13px">暂无数据</p></div>'; return; }
+  c.innerHTML=recent.map(r=>{
+    const avg=SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5, h=Math.max(8,avg*14), d=r.date?r.date.slice(5):'?';
+    return `<div class="chart-bar-group"><div class="chart-bar" style="height:${h}px" title="${avg.toFixed(1)}"></div><div class="chart-label">${d}</div></div>`;
+  }).join('');
+}
+
+function refreshHistory() {
+  const data=loadData(), list=document.getElementById('history-list');
+  if (!data.records.length) { list.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">📭</div><p>还没有翻译记录<br>完成第一次练习后就会显示在这里</p></div>'; return; }
+  const vc={};
+  data.records.forEach(r=>{ const l=r.bookmark_label||r.topic||'未知'; vc[l]=(vc[l]||0)+1; });
+  list.innerHTML=data.records.slice().reverse().map((r,idx)=>{
+    const ri=data.records.length-1-idx;
+    const avg=(SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5).toFixed(1);
+    const date=r.date?r.date.slice(5).replace('-','/') :'?';
+    const label=r.bookmark_label||(r.topic?r.topic.slice(0,6):'训练');
+    let vn=0; const key=r.bookmark_label||r.topic||'未知';
+    for(let i=0;i<=ri;i++) if((data.records[i].bookmark_label||data.records[i].topic||'未知')===key) vn++;
+    const vc2=vc[key]||1;
+    let cls='new',txt=`第${vn}次`;
+    if(vc2>=2&&vn>=2){cls='done';txt=`第${vn}次✓`;}
+    return `<div class="bookmark" onclick="openDetail(${ri})"><div class="bm-date">${date}</div><div class="bm-topic">${label}</div><div class="bm-score">${avg}</div><div class="bm-visit ${cls}">${txt}</div></div>`;
+  }).join('');
+}
+
+function openDetail(idx) {
+  const data=loadData(), r=data.records[idx]; if(!r) return;
+  const avg=(SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5).toFixed(1);
+  const label=r.bookmark_label||r.topic||'训练';
+  const key=r.bookmark_label||r.topic||'未知';
+  let vn=0; for(let i=0;i<=idx;i++) if((data.records[i].bookmark_label||data.records[i].topic||'未知')===key) vn++;
+
+  const bars=SCORE_KEYS.map(k=>{
+    const v=r.scores[k]||0, p=v*10, c=v>=7?'var(--green)':v>=4?'var(--yellow)':'var(--accent)';
+    return `<div class="score-bar-row"><span class="score-bar-label">${SCORE_LABELS[k]}</span><div class="score-bar-track"><div class="score-bar-fill" style="width:${p}%;background:${c}"></div></div><span class="score-bar-value">${v}</span></div>`;
+  }).join('');
+
+  let advHTML='';
+  if(r.detailed_advice){
+    advHTML='<div class="section-title" style="margin-top:20px">💡 各项建议</div>';
+    for(const k of SCORE_KEYS){
+      const a=r.detailed_advice[k]; if(!a) continue;
+      advHTML+=`<div class="advice-card"><h4>${SCORE_LABELS[k]}（${r.scores[k]||'-'}分）</h4><div class="diagnosis">${a.diagnosis||''}</div>${a.exercises&&a.exercises.length?'<ul class="exercises">'+a.exercises.map(e=>`<li>${e}</li>`).join('')+'</ul>':''}${a.target?`<div class="target-text">🎯 ${a.target}</div>`:''}</div>`;
+    }
+  }
+
+  let corHTML='';
+  if(r.example_corrections&&r.example_corrections.length)
+    corHTML=`<div class="card" style="margin-top:10px"><div class="section-title">📝 纠错记录</div>${r.example_corrections.map(c=>`<div style="font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.5">• ${c}</div>`).join('')}</div>`;
+
+  let swHTML='';
+  if((r.weak_points&&r.weak_points.length)||(r.strong_points&&r.strong_points.length)){
+    swHTML='<div class="card" style="margin-top:10px">';
+    if(r.strong_points&&r.strong_points.length) swHTML+=`<div style="font-size:13px;color:var(--green);margin-bottom:8px">💪 ${r.strong_points.join('  ·  ')}</div>`;
+    if(r.weak_points&&r.weak_points.length) swHTML+=`<div style="font-size:13px;color:var(--yellow)">⚠️ ${r.weak_points.join('  ·  ')}</div>`;
+    swHTML+='</div>';
+  }
+
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-header"><h2>🔖 ${label}</h2><div class="meta">${r.date||'?'} ${r.time||''} · 综合 ${avg} · 第${vn}次训练${r.duration_min?' · '+r.duration_min+'分钟':''}</div></div>
+    <div class="card"><div class="section-title">📊 五维评分</div>${bars}</div>
+    ${swHTML}${advHTML}${corHTML}
+    ${r.suggested_revisit?`<div class="card" style="margin-top:10px"><div class="section-title">🔄 复习建议</div><div style="font-size:13px;color:var(--text2);line-height:1.6">${r.suggested_revisit}</div></div>`:''}
+    <div class="card" style="margin-top:10px">
+      <div class="section-title">🔄 生成复习提示词</div>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">点击下方按钮，生成针对「${label}」的复习 prompt</p>
+      <button class="btn btn-primary" onclick="generateReviewPrompt(${idx})" style="background:var(--green);box-shadow:0 4px 20px #22c55e30">📋 生成并复制复习提示词</button>
+      <div class="review-prompt-box" id="review-prompt-${idx}" style="display:none"></div>
+    </div>`;
+  document.getElementById('detail-modal').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal() { document.getElementById('detail-modal').classList.remove('show'); document.body.style.overflow=''; }
+
+function generateReviewPrompt(idx) {
+  const data=loadData(), r=data.records[idx]; if(!r) return;
+  const avg=getAverageScores(data), label=r.bookmark_label||r.topic||'训练';
+  const key=r.bookmark_label||r.topic||'未知';
+  let vn=0; for(let i=0;i<=idx;i++) if((data.records[i].bookmark_label||data.records[i].topic||'未知')===key) vn++;
+
+  let advSum='';
+  if(r.detailed_advice) for(const k of SCORE_KEYS){ const a=r.detailed_advice[k]; if(a&&a.diagnosis) advSum+=`- ${SCORE_LABELS[k]}(${r.scores[k]}分): ${a.diagnosis}\n`; }
+
+  const prompt=`You are an expert English translation coach. This is a REVIEW SESSION — the learner is revisiting a translation topic for the ${vn+1}${vn===0?'st':vn===1?'nd':vn===2?'rd':'th'} time.
+
+TOPIC TO REVISIT: "${r.topic}"
+
+PREVIOUS PERFORMANCE:
+- Scores: Accuracy ${r.scores.accuracy}, Fluency ${r.scores.fluency}, Vocabulary ${r.scores.vocabulary}, Grammar ${r.scores.grammar}, Style ${r.scores.style}
+- Weak points: ${r.weak_points?r.weak_points.join(', '):'N/A'}
+- Strong points: ${r.strong_points?r.strong_points.join(', '):'N/A'}
+${advSum?`- Detailed issues:\n${advSum}`:''}
+CURRENT OVERALL LEVEL: Accuracy ${avg.accuracy}, Fluency ${avg.fluency}, Vocabulary ${avg.vocabulary}, Grammar ${avg.grammar}, Style ${avg.style}
+
+REVIEW RULES:
+1. Provide a NEW passage on the same topic but from a different angle
+2. The difficulty should be slightly higher than last time
+3. Specifically target the weak points identified above
+4. After the learner translates, compare with previous performance
+5. Session should last about 10-15 minutes
+
+AT THE END: Provide the same JSON format as the regular session.
+
+Start the review session now!`;
+
+  const box=document.getElementById(`review-prompt-${idx}`);
+  box.textContent=prompt; box.style.display='block';
+  navigator.clipboard.writeText(prompt).then(()=>showToast('✅ 复习提示词已复制！')).catch(()=>{
+    const ta=document.createElement('textarea'); ta.value=prompt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('✅ 复习提示词已复制！');
+  });
+}
+
+function refreshSettings() {
+  const data=loadData();
+  document.getElementById('total-sessions').textContent=data.records.length;
+  if(data.records.length>0){
+    const best=Math.max(...data.records.map(r=>SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5));
+    document.getElementById('best-score').textContent=best.toFixed(1);
+  }
+}
+
+function copyPrompt() {
+  const text=document.getElementById('prompt-text').textContent;
+  navigator.clipboard.writeText(text).then(()=>showToast('✅ 已复制！去 Gemini 粘贴吧')).catch(()=>{
+    const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('✅ 已复制！去 Gemini 粘贴吧');
+  });
+}
+
+function submitRecord() {
+  const input=document.getElementById('json-input').value.trim();
+  if(!input){showToast('⚠️ 请先粘贴 JSON 评分');return;}
+  try {
+    let js=input; const m=input.match(/```(?:json)?\s*([\s\S]*?)```/); if(m) js=m[1].trim();
+    const p=JSON.parse(js); if(!p.scores) throw new Error('缺少 scores 字段');
+    const record={date:new Date().toISOString().split('T')[0],time:new Date().toTimeString().split(' ')[0],topic:p.topic||'未记录',bookmark_label:p.bookmark_label||'',scores:{},weak_points:p.weak_points||[],strong_points:p.strong_points||[],suggested_focus:p.suggested_focus||'',duration_min:p.duration_min||null,example_corrections:p.example_corrections||[],detailed_advice:p.detailed_advice||null,suggested_revisit:p.suggested_revisit||''};
+    for(const k of SCORE_KEYS){const v=p.scores[k];record.scores[k]=(typeof v==='number'&&v>=1&&v<=10)?v:5;}
+    const data=loadData(); data.records.push(record); saveData(data);
+    document.getElementById('json-input').value=''; showToast('🎉 记录已保存！'); switchTab('home');
+  } catch(e){showToast('❌ JSON 格式有误：'+e.message);}
+}
+
+function submitManual() {
+  const scores={}; let valid=true;
+  for(const k of SCORE_KEYS){const v=parseInt(document.getElementById(`m-${k}`).value);if(isNaN(v)||v<1||v>10){valid=false;break;}scores[k]=v;}
+  if(!valid){showToast('⚠️ 请填写所有分数（1-10）');return;}
+  const record={date:new Date().toISOString().split('T')[0],time:new Date().toTimeString().split(' ')[0],topic:document.getElementById('m-topic').value||'手动录入',bookmark_label:'',scores,weak_points:document.getElementById('m-weak').value?[document.getElementById('m-weak').value]:[],strong_points:[],suggested_focus:'',detailed_advice:null,suggested_revisit:''};
+  const data=loadData(); data.records.push(record); saveData(data);
+  ['m-topic','m-accuracy','m-fluency','m-vocabulary','m-grammar','m-style','m-weak'].forEach(id=>document.getElementById(id).value='');
+  showToast('🎉 记录已保存！'); switchTab('home');
+}
+
+function exportData() {
+  const data=loadData(), blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}), url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=`translate_data_${new Date().toISOString().split('T')[0]}.json`; a.click(); URL.revokeObjectURL(url); showToast('📤 数据已导出');
+}
+
+function clearData() {
+  if(confirm('确定清除所有翻译记录？此操作不可撤销！')){
+    const empty={records:[]};_cachedData=empty;localStorage.removeItem(STORAGE_KEY);
+    fetch('/api/translate_data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(empty)}).catch(()=>{});
+    showToast('🗑 数据已清除');refreshHome();
+  }
+}
+
+function importData(event) {
+  const file=event.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try {
+      const imp=JSON.parse(e.target.result);
+      if(!imp.records||!Array.isArray(imp.records)) throw new Error('无效的备份文件');
+      const cur=loadData();
+      const choice=cur.records.length>0?confirm(`当前有 ${cur.records.length} 条记录。\n\n确定 → 合并\n取消 → 覆盖`):false;
+      if(choice){
+        const ex=new Set(cur.records.map(r=>`${r.date}_${r.time}_${r.topic}`));
+        const nr=imp.records.filter(r=>!ex.has(`${r.date}_${r.time}_${r.topic}`));
+        cur.records.push(...nr); saveData(cur); showToast(`✅ 合并完成！新增 ${nr.length} 条记录`);
+      } else { saveData(imp); showToast(`✅ 恢复完成！共 ${imp.records.length} 条记录`); }
+      refreshHome();
+    } catch(err){showToast('❌ 导入失败：'+err.message);}
+  };
+  reader.readAsText(file); event.target.value='';
+}
+
+refreshHome();
+loadDataFromServer().then(()=>refreshHome());
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>

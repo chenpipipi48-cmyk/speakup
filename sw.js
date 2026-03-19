@@ -1,5 +1,5 @@
-const CACHE_NAME = 'speakup-v1';
-const ASSETS = ['/index.html', '/manifest.json'];
+const CACHE_NAME = 'speakup-v3';
+const ASSETS = ['/index.html', '/speak.html', '/translate.html', '/debate.html', '/feynman.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));

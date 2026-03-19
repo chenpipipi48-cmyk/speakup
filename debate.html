@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0a">
+<title>辩论训练 - SpeakUp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a; --card: #141414; --card2: #1c1c1c;
+  --accent: #8b5cf6; --accent2: #a78bfa; --accent-glow: #8b5cf630;
+  --green: #22c55e; --red: #ef4444; --yellow: #ff6b35;
+  --text: #f0f0f0; --text2: #a0a0a0; --text3: #555; --radius: 4px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:80px; -webkit-tap-highlight-color:transparent; position:relative; overflow-x:hidden; }
+body::before { content:''; position:fixed; top:-40%; right:-20%; width:60vw; height:60vw; background:var(--accent); clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%); opacity:0.03; z-index:0; pointer-events:none; }
+body::after { content:''; position:fixed; bottom:-30%; left:-15%; width:50vw; height:50vw; background:var(--accent2); clip-path:polygon(0 0,100% 0,100% 100%); opacity:0.025; z-index:0; pointer-events:none; }
+
+.header { padding:20px 20px 10px; display:flex; justify-content:space-between; align-items:center; position:relative; z-index:1; }
+.header h1 { font-size:24px; font-weight:700; letter-spacing:-0.5px; }
+.header h1 span { color:var(--accent2); text-shadow:0 0 30px var(--accent-glow); }
+.back-btn { color:var(--text2); text-decoration:none; font-size:14px; display:flex; align-items:center; gap:4px; font-weight:600; }
+.streak { background:linear-gradient(135deg,#8b5cf620,#8b5cf610); border:1px solid #8b5cf640; padding:6px 14px; border-radius:2px; font-size:13px; color:var(--accent2); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+
+.tab-bar { position:fixed; bottom:0; left:0; right:0; background:#0d0d0d; border-top:1px solid #8b5cf630; display:flex; z-index:100; padding-bottom:env(safe-area-inset-bottom); }
+.tab { flex:1; padding:12px 0 10px; text-align:center; font-size:11px; color:var(--text3); cursor:pointer; transition:all 0.2s; border:none; background:none; text-transform:uppercase; letter-spacing:0.5px; position:relative; }
+.tab.active { color:var(--accent2); }
+.tab.active::after { content:''; position:absolute; top:0; left:20%; right:20%; height:2px; background:var(--accent); box-shadow:0 0 10px var(--accent-glow); }
+.tab-icon { font-size:20px; display:block; margin-bottom:2px; }
+
+.page { display:none; padding:0 16px 20px; position:relative; z-index:1; }
+.page.active { display:block; }
+.card { background:var(--card); border-radius:var(--radius); padding:20px; margin-bottom:14px; border:1px solid #ffffff08; border-left:3px solid var(--accent); position:relative; }
+.prompt-card { background:linear-gradient(135deg,#8b5cf608,#141414); border:1px solid #8b5cf625; border-left:3px solid var(--accent); }
+.scores-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px; }
+.score-item { text-align:center; padding:12px 4px; background:var(--card2); border-radius:2px; border-bottom:2px solid var(--accent); transition:transform 0.2s,box-shadow 0.2s; }
+.score-item:hover { transform:translateY(-2px); box-shadow:0 4px 20px var(--accent-glow); }
+.score-item .value { font-size:24px; font-weight:700; color:var(--accent2); text-shadow:0 0 20px var(--accent-glow); }
+.score-item .label { font-size:10px; color:var(--text3); margin-top:4px; text-transform:uppercase; letter-spacing:1px; }
+.score-item .trend { font-size:12px; margin-top:2px; font-weight:700; }
+.trend-up { color:var(--green); } .trend-down { color:var(--red); } .trend-flat { color:var(--text3); }
+.prompt-topic { display:inline-block; background:var(--accent); color:white; font-size:11px; font-weight:700; padding:4px 12px; border-radius:2px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+.prompt-focus { font-size:13px; color:var(--yellow); margin-bottom:12px; font-weight:500; }
+.prompt-text { background:#080808; border-radius:2px; padding:14px; font-size:13px; line-height:1.7; color:var(--text2); max-height:200px; overflow-y:auto; white-space:pre-wrap; word-break:break-word; border:1px solid #ffffff08; }
+.btn { display:inline-flex; align-items:center; gap:6px; padding:14px 24px; border:none; border-radius:2px; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.15s; font-family:inherit; text-transform:uppercase; letter-spacing:0.5px; }
+.btn:active { transform:scale(0.97); }
+.btn-primary { background:var(--accent); color:white; width:100%; justify-content:center; margin-top:14px; box-shadow:0 4px 20px var(--accent-glow); }
+.btn-primary:hover { background:var(--accent2); box-shadow:0 6px 30px var(--accent-glow); }
+.btn-secondary { background:var(--card2); color:var(--text); width:100%; justify-content:center; margin-top:10px; border:1px solid #ffffff10; }
+.btn-small { padding:10px 16px; font-size:12px; }
+.btn-danger { background:#dc262615; color:var(--red); border:1px solid #dc262640; }
+.paste-area { width:100%; min-height:120px; background:#080808; border:1px solid #ffffff12; border-left:3px solid var(--accent); border-radius:2px; padding:14px; color:var(--text); font-size:13px; font-family:'Courier New',monospace; resize:vertical; outline:none; transition:border-color 0.2s; }
+.paste-area:focus { border-color:var(--accent); box-shadow:0 0 20px var(--accent-glow); }
+.paste-area::placeholder { color:var(--text3); }
+.section-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:6px; text-transform:uppercase; letter-spacing:1px; }
+.bookmark-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px; }
+.bookmark { background:var(--card); border:1px solid #ffffff08; border-left:3px solid var(--accent); border-radius:2px; padding:14px 10px; cursor:pointer; transition:all 0.15s; display:flex; flex-direction:column; align-items:center; gap:6px; min-height:140px; position:relative; }
+.bookmark:hover,.bookmark:active { background:var(--card2); border-left-color:var(--accent2); transform:translateY(-2px); box-shadow:0 4px 20px var(--accent-glow); }
+.bookmark .bm-date { font-size:11px; color:var(--text3); font-weight:600; }
+.bookmark .bm-topic { font-size:12px; color:var(--text); text-align:center; line-height:1.3; flex:1; display:flex; align-items:center; word-break:break-all; overflow:hidden; }
+.bookmark .bm-score { font-size:22px; font-weight:700; color:var(--accent2); text-shadow:0 0 15px var(--accent-glow); }
+.bookmark .bm-visit { font-size:10px; padding:2px 8px; border-radius:2px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+.bm-visit.new { background:var(--accent); color:white; } .bm-visit.done { background:var(--green); color:#0a0a0a; }
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:200; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.modal-overlay.show { display:block; }
+.modal { background:var(--bg); min-height:100vh; padding:20px 16px 100px; position:relative; z-index:1; }
+.modal-close { position:fixed; top:16px; right:16px; width:36px; height:36px; border:1px solid #ffffff20; background:var(--card); color:var(--text); border-radius:2px; font-size:18px; cursor:pointer; z-index:210; display:flex; align-items:center; justify-content:center; }
+.modal-header { margin-bottom:20px; }
+.modal-header h2 { font-size:18px; font-weight:700; margin-bottom:6px; }
+.modal-header .meta { font-size:12px; color:var(--text3); }
+.score-bar-row { display:flex; align-items:center; margin-bottom:12px; gap:10px; }
+.score-bar-label { font-size:12px; color:var(--text2); min-width:36px; text-align:right; font-weight:600; }
+.score-bar-track { flex:1; height:8px; background:var(--card2); border-radius:1px; overflow:hidden; }
+.score-bar-fill { height:100%; border-radius:1px; transition:width 0.5s ease; }
+.score-bar-value { font-size:14px; font-weight:700; min-width:24px; color:var(--accent2); }
+.advice-card { background:var(--card); border-left:3px solid var(--accent); border-radius:2px; padding:14px; margin-bottom:10px; }
+.advice-card h4 { font-size:13px; font-weight:700; color:var(--accent2); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; }
+.advice-card .diagnosis { font-size:13px; color:var(--text); margin-bottom:8px; line-height:1.5; }
+.advice-card .exercises { font-size:12px; color:var(--text2); line-height:1.6; }
+.advice-card .exercises li { margin-left:16px; margin-bottom:4px; }
+.advice-card .target-text { font-size:12px; color:var(--yellow); margin-top:8px; font-weight:500; }
+.review-prompt-box { background:#080808; border:1px solid #ffffff08; border-left:3px solid var(--green); border-radius:2px; padding:14px; font-size:12px; line-height:1.6; color:var(--text2); max-height:200px; overflow-y:auto; white-space:pre-wrap; word-break:break-word; margin-top:10px; }
+.chart-container { height:160px; display:flex; align-items:flex-end; gap:6px; padding:10px 0; }
+.chart-bar-group { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.chart-bar { width:100%; max-width:32px; background:linear-gradient(180deg,var(--accent),var(--accent2)); border-radius:1px; transition:height 0.5s ease; min-height:4px; box-shadow:0 0 10px var(--accent-glow); }
+.chart-label { font-size:9px; color:var(--text3); text-align:center; text-transform:uppercase; }
+.setting-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid #ffffff08; }
+.setting-row:last-child { border-bottom:none; }
+.setting-label { font-size:14px; color:var(--text2); }
+.setting-value { font-size:14px; color:var(--accent2); font-weight:700; }
+.toast { position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-100px); background:var(--accent); color:white; padding:12px 24px; border-radius:2px; font-size:14px; font-weight:700; z-index:999; transition:transform 0.3s ease; white-space:nowrap; box-shadow:0 4px 20px var(--accent-glow); text-transform:uppercase; letter-spacing:0.5px; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+.empty-state { text-align:center; padding:40px 20px; color:var(--text3); }
+.empty-state .icon { font-size:48px; margin-bottom:12px; }
+.empty-state p { font-size:14px; line-height:1.6; }
+.manual-row { display:flex; align-items:center; margin-bottom:10px; gap:10px; }
+.manual-row label { font-size:13px; color:var(--text2); min-width:90px; }
+.manual-row input { flex:1; padding:8px 12px; background:var(--bg); border:1px solid #ffffff15; border-radius:8px; color:var(--text); font-size:14px; outline:none; font-family:inherit; }
+.manual-row input:focus { border-color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="header">
+  <a href="./index.html" class="back-btn">← 返回</a>
+  <h1>🗡️ 辩论<span>训练</span></h1>
+  <div class="streak" id="streak">🔥 0 次</div>
+</div>
+
+<div class="page active" id="page-home">
+  <div class="card"><div class="section-title">📊 当前水平</div>
+    <div class="scores-grid" id="scores-grid">
+      <div class="score-item"><div class="value">-</div><div class="label">逻辑</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">结构</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">论据</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">反驳</div><div class="trend">-</div></div>
+      <div class="score-item"><div class="value">-</div><div class="label">表达</div><div class="trend">-</div></div>
+    </div>
+  </div>
+  <div class="card prompt-card">
+    <div class="section-title">🎯 今日辩论训练</div>
+    <div class="prompt-topic" id="today-topic">加载中...</div>
+    <div class="prompt-focus" id="today-focus"></div>
+    <div class="prompt-text" id="prompt-text">正在生成提示词...</div>
+    <button class="btn btn-primary" onclick="copyPrompt()">📋 复制提示词到 Gemini</button>
+  </div>
+  <div class="card"><div class="section-title">📈 近 7 次趋势</div><div class="chart-container" id="mini-chart"></div></div>
+</div>
+
+<div class="page" id="page-record">
+  <div class="card">
+    <div class="section-title">📝 录入辩论结果</div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.6">辩论结束后，跟 Gemini 说 <strong style="color:var(--yellow)">"总结一下"</strong><br>Gemini 会输出 JSON 评分 + 建议，直接粘贴：</p>
+    <textarea class="paste-area" id="json-input" placeholder='粘贴 Gemini 输出的完整 JSON'></textarea>
+    <button class="btn btn-primary" onclick="submitRecord()">✅ 录入记录</button>
+  </div>
+  <div class="card">
+    <div class="section-title">⚡ 快速手动打分</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px">没有 JSON？手动填也行：</p>
+    <div class="manual-row"><label>辩题：</label><input type="text" id="m-topic" placeholder="今天辩了什么"></div>
+    <div class="manual-row"><label>逻辑 (1-10)：</label><input type="number" id="m-logic" min="1" max="10" placeholder="7"></div>
+    <div class="manual-row"><label>结构 (1-10)：</label><input type="number" id="m-structure" min="1" max="10" placeholder="6"></div>
+    <div class="manual-row"><label>论据 (1-10)：</label><input type="number" id="m-evidence" min="1" max="10" placeholder="7"></div>
+    <div class="manual-row"><label>反驳 (1-10)：</label><input type="number" id="m-rebuttal" min="1" max="10" placeholder="6"></div>
+    <div class="manual-row"><label>表达 (1-10)：</label><input type="number" id="m-delivery" min="1" max="10" placeholder="7"></div>
+    <div class="manual-row"><label>薄弱点：</label><input type="text" id="m-weak" placeholder="可选"></div>
+    <button class="btn btn-secondary" onclick="submitManual()">📥 手动录入</button>
+  </div>
+</div>
+
+<div class="page" id="page-history">
+  <div class="section-title" style="padding:0 4px;margin-bottom:14px">📚 辩论历史</div>
+  <div class="bookmark-grid" id="history-list"></div>
+</div>
+
+<div class="modal-overlay" id="detail-modal">
+  <button class="modal-close" onclick="closeModal()">&times;</button>
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<div class="page" id="page-settings">
+  <div class="card">
+    <div class="section-title">⚙️ 设置</div>
+    <div class="setting-row"><span class="setting-label">总辩论次数</span><span class="setting-value" id="total-sessions">0</span></div>
+    <div class="setting-row"><span class="setting-label">最高平均分</span><span class="setting-value" id="best-score">-</span></div>
+    <div class="setting-row"><span class="setting-label">数据存储</span><span class="setting-value">浏览器本地</span></div>
+  </div>
+  <div class="card">
+    <div class="section-title">💾 数据管理</div>
+    <button class="btn btn-secondary btn-small" onclick="exportData()" style="margin-top:0;margin-bottom:8px">📤 导出备份</button>
+    <label class="btn btn-secondary btn-small" style="margin-bottom:8px;text-align:center;cursor:pointer">📥 从备份恢复<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    <button class="btn btn-danger btn-small" onclick="clearData()">🗑 清除所有数据</button>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('home')"><span class="tab-icon">🏠</span>首页</button>
+  <button class="tab" onclick="switchTab('record')"><span class="tab-icon">📝</span>录入</button>
+  <button class="tab" onclick="switchTab('history')"><span class="tab-icon">📚</span>历史</button>
+  <button class="tab" onclick="switchTab('settings')"><span class="tab-icon">⚙️</span>设置</button>
+</div>
+
+<script>
+const STORAGE_KEY = 'debate_data';
+const SCORE_KEYS = ['logic','structure','evidence','rebuttal','delivery'];
+const SCORE_LABELS = { logic:'逻辑', structure:'结构', evidence:'论据', rebuttal:'反驳', delivery:'表达' };
+
+const DEBATE_TOPICS = {
+  society: { name:'社会', beginner:['大学生应该兼职打工吗？','网购是否应该取代实体店？','公共场所是否应该全面禁烟？'], intermediate:['社交媒体利大于弊还是弊大于利？','高考是否是最公平的选拔制度？','应不应该实行弹性工作制？'], advanced:['个人隐私权与公共安全应如何平衡？','基因编辑技术应该被允许用于人类吗？','人工智能是否会加剧社会不平等？'] },
+  philosophy: { name:'哲学', beginner:['金钱能买到幸福吗？','外表重要还是内在重要？','人性本善还是本恶？'], intermediate:['自由与平等哪个更重要？','结果论还是过程论更合理？','个人利益与集体利益冲突时应如何抉择？'], advanced:['绝对的道德标准是否存在？','科技进步是否必然带来文明进步？','意识可以被机器复制吗？'] },
+  education: { name:'教育', beginner:['学生应该穿校服吗？','课外辅导班有必要吗？','电子设备应该进课堂吗？'], intermediate:['应试教育还是素质教育更适合中国？','大学应该取消绩点制度吗？','留学是否值得？'], advanced:['教育的本质是培养能力还是传授知识？','AI 教师能否取代人类教师？','教育公平与教育效率能否兼得？'] },
+  tech: { name:'科技', beginner:['短视频是有益还是有害？','人类应该移民太空吗？','电子书会取代纸质书吗？'], intermediate:['算法推荐是信息茧房还是个性化服务？','远程办公会成为主流吗？','数字货币应该取代纸币吗？'], advanced:['强人工智能应该拥有权利吗？','技术垄断如何治理？','元宇宙是人类的未来还是逃避现实？'] },
+  life: { name:'生活', beginner:['养猫好还是养狗好？','早起好还是晚睡好？','独居好还是合租好？'], intermediate:['婚姻是否仍然是必要的社会制度？','断舍离还是存储型生活更好？','内卷是个人问题还是制度问题？'], advanced:['躺平是理性选择还是消极逃避？','中产阶级焦虑的根源是什么？','幸福能被量化和标准化吗？'] }
+};
+
+let _cachedData = null;
+function loadData() { if(_cachedData) return _cachedData; try{const d=JSON.parse(localStorage.getItem(STORAGE_KEY));_cachedData=(d&&Array.isArray(d.records))?d:{records:[]};}catch{_cachedData={records:[]};} return _cachedData; }
+async function loadDataFromServer() { try{const r=await fetch('/api/debate_data');if(r.ok){const d=await r.json();_cachedData=d;localStorage.setItem(STORAGE_KEY,JSON.stringify(d));return d;}}catch{} return loadData(); }
+function saveData(data) { _cachedData=data; localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); fetch('/api/debate_data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{}); }
+
+function getLevel(avg) { const o=Object.values(avg).reduce((a,b)=>a+b,0)/5; if(o>=7)return'advanced';if(o>=4)return'intermediate';return'beginner'; }
+function getAverageScores(data) { const r=data.records.slice(-5); if(!r.length)return{logic:0,structure:0,evidence:0,rebuttal:0,delivery:0}; const a={}; for(const k of SCORE_KEYS)a[k]=+(r.reduce((s,x)=>s+(x.scores[k]||0),0)/r.length).toFixed(1); return a; }
+function getTrend(data,key) { const r=data.records; if(r.length<2)return'flat'; const rc=r.slice(-3).map(x=>x.scores[key]||0),ol=r.slice(-6,-3).map(x=>x.scores[key]||0); if(!ol.length)return'flat'; const ra=rc.reduce((a,b)=>a+b,0)/rc.length,oa=ol.reduce((a,b)=>a+b,0)/ol.length; if(ra>oa+0.3)return'up';if(ra<oa-0.3)return'down';return'flat'; }
+function getWeakest(avg) { let m=11,mk='logic'; for(const k of SCORE_KEYS)if(avg[k]>0&&avg[k]<m){m=avg[k];mk=k;} return mk; }
+
+function generatePrompt(data) {
+  const avg=getAverageScores(data), weakest=getWeakest(avg), hasHistory=data.records.length>0, sessionNum=data.records.length+1;
+  const focusMap = {
+    logic:'逻辑推理能力——确保论证有清晰的因果链条，避免逻辑谬误',
+    structure:'观点组织结构——帮助学习者用总分总、递进等结构组织发言',
+    evidence:'论据质量——鼓励使用具体数据、案例、权威引用来支撑观点',
+    rebuttal:'反驳能力——训练识别对方论证弱点并有效回应',
+    delivery:'语言表达力——提升用词精准度、修辞技巧和说服力'
+  };
+
+  let ctx='';
+  if(hasHistory){
+    const last=data.records[data.records.length-1];
+    const recentTopics=data.records.slice(-5).map(r=>r.topic).filter(Boolean).join('、');
+    ctx=`\n学习者档案：\n- 这是第 ${sessionNum} 次辩论训练\n- 当前分数（满分10）：逻辑 ${avg.logic}、结构 ${avg.structure}、论据 ${avg.evidence}、反驳 ${avg.rebuttal}、表达 ${avg.delivery}\n- 最薄弱项：${SCORE_LABELS[weakest]}\n- 上次薄弱点：${last.weak_points?last.weak_points.join('、'):'无'}\n- 最近辩题（不要重复）：${recentTopics||'无'}\n`;
+  }
+
+  const levelHint=hasHistory?getLevel(avg):'beginner';
+  const levelLabel=levelHint==='beginner'?'入门级':levelHint==='intermediate'?'中级':'高级';
+
+  const prompt=`你是一位专业的辩论教练兼对手。你将与学习者进行一场中文辩论训练。
+
+第一步——选择辩题：
+根据下方学习者档案，选择一个辩题：
+1. 有争议性，双方都有理据
+2. 针对学习者的薄弱项设计（如逻辑弱则选需要严密推理的题目）
+3. 不重复最近辩题
+4. 难度匹配：${levelLabel}
+5. 可以来自任何领域：社会、哲学、教育、科技、生活等
+${ctx}
+本次重点突破：${focusMap[weakest]||focusMap.logic}
+
+辩论规则：
+1. 先公布辩题，让学习者选择正方或反方立场
+2. 你扮演对方立场，进行 3-4 轮交锋
+3. 每轮：学习者先陈述 → 你反驳并追问 → 学习者回应
+4. 过程中随时指出逻辑谬误（稻草人、滑坡、诉诸权威等）
+5. 鼓励学习者使用结构化表达（"首先…其次…最后…""一方面…另一方面…"）
+6. 适时挑战学习者的论据质量，问"有数据支撑吗？""能举个例子吗？"
+7. 保持友好但有挑战性
+
+重要——结束时：
+当学习者说"总结"或"结束"时，输出以下 JSON 格式的评估：
+
+\`\`\`json
+{
+  "topic": "<辩题>",
+  "bookmark_label": "<2-4字摘要>",
+  "side": "<学习者选择的立场>",
+  "duration_min": <估计分钟数>,
+  "scores": {
+    "logic": <1-10>,
+    "structure": <1-10>,
+    "evidence": <1-10>,
+    "rebuttal": <1-10>,
+    "delivery": <1-10>
+  },
+  "weak_points": ["具体问题1", "具体问题2"],
+  "strong_points": ["亮点1", "亮点2"],
+  "suggested_focus": "<下次训练建议>",
+  "example_corrections": ["<原始表达> → <改进版本>", ...],
+  "logical_fallacies": ["<发现的逻辑谬误及解释>", ...],
+  "detailed_advice": {
+    "logic": { "diagnosis": "<具体问题>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "structure": { "diagnosis": "<具体问题>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "evidence": { "diagnosis": "<具体问题>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "rebuttal": { "diagnosis": "<具体问题>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" },
+    "delivery": { "diagnosis": "<具体问题>", "exercises": ["<练习1>", "<练习2>"], "target": "<目标>" }
+  },
+  "suggested_revisit": "<复习建议>"
+}
+\`\`\`
+
+评分标准：
+- 1-3：存在明显问题，论证混乱，难以说服
+- 4-6：基本合格但有明显短板
+- 7-9：优秀，论证有力，结构清晰
+- 10：专业辩手水平
+${hasHistory?`\n参考上次分数校准：逻辑 ${avg.logic}、结构 ${avg.structure}、论据 ${avg.evidence}、反驳 ${avg.rebuttal}、表达 ${avg.delivery}`:''}\n\n开始辩论！先公布辩题吧。`;
+
+  return { prompt, weakest, levelLabel, sessionNum };
+}
+
+function switchTab(name) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(`page-${name}`).classList.add('active'); document.querySelectorAll('.tab')[['home','record','history','settings'].indexOf(name)].classList.add('active'); if(name==='home')refreshHome();if(name==='history')refreshHistory();if(name==='settings')refreshSettings(); }
+function showToast(msg) { const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500); }
+
+function refreshHome() {
+  const data=loadData(),avg=getAverageScores(data);
+  const grid=document.getElementById('scores-grid'),items=grid.querySelectorAll('.score-item');
+  SCORE_KEYS.forEach((k,i)=>{items[i].querySelector('.value').textContent=avg[k]>0?avg[k]:'-';const tr=getTrend(data,k),el=items[i].querySelector('.trend');el.textContent=tr==='up'?'↑':tr==='down'?'↓':'→';el.className=`trend trend-${tr}`;});
+  document.getElementById('streak').textContent=`🗡️ ${data.records.length} 次`;
+  const{prompt,weakest,levelLabel,sessionNum}=generatePrompt(data);
+  document.getElementById('today-topic').textContent=`AI 自适应 · ${levelLabel} · 第${sessionNum}次`;
+  document.getElementById('today-focus').textContent=`📌 重点突破：${SCORE_LABELS[weakest]}`;
+  document.getElementById('prompt-text').textContent=prompt;
+  const c=document.getElementById('mini-chart'),recent=data.records.slice(-7);
+  if(!recent.length){c.innerHTML='<div class="empty-state" style="width:100%"><p style="font-size:13px">暂无数据</p></div>';return;}
+  c.innerHTML=recent.map(r=>{const a=SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5,h=Math.max(8,a*14),d=r.date?r.date.slice(5):'?';return`<div class="chart-bar-group"><div class="chart-bar" style="height:${h}px" title="${a.toFixed(1)}"></div><div class="chart-label">${d}</div></div>`;}).join('');
+}
+
+function refreshHistory() {
+  const data=loadData(),list=document.getElementById('history-list');
+  if(!data.records.length){list.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">📭</div><p>还没有辩论记录</p></div>';return;}
+  const vc={};data.records.forEach(r=>{const l=r.bookmark_label||r.topic||'未知';vc[l]=(vc[l]||0)+1;});
+  list.innerHTML=data.records.slice().reverse().map((r,idx)=>{const ri=data.records.length-1-idx;const avg=(SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5).toFixed(1);const date=r.date?r.date.slice(5).replace('-','/') :'?';const label=r.bookmark_label||(r.topic?r.topic.slice(0,6):'训练');let vn=0;const key=r.bookmark_label||r.topic||'未知';for(let i=0;i<=ri;i++)if((data.records[i].bookmark_label||data.records[i].topic||'未知')===key)vn++;const cls=vn>=2?'done':'new',txt=`第${vn}次${vn>=2?'✓':''}`;return`<div class="bookmark" onclick="openDetail(${ri})"><div class="bm-date">${date}</div><div class="bm-topic">${label}</div><div class="bm-score">${avg}</div><div class="bm-visit ${cls}">${txt}</div></div>`;}).join('');
+}
+
+function openDetail(idx) {
+  const data=loadData(),r=data.records[idx];if(!r)return;
+  const avg=(SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5).toFixed(1);
+  const label=r.bookmark_label||r.topic||'训练';
+  const key=r.bookmark_label||r.topic||'未知';let vn=0;for(let i=0;i<=idx;i++)if((data.records[i].bookmark_label||data.records[i].topic||'未知')===key)vn++;
+  const bars=SCORE_KEYS.map(k=>{const v=r.scores[k]||0,p=v*10,c=v>=7?'var(--green)':v>=4?'var(--yellow)':'var(--accent)';return`<div class="score-bar-row"><span class="score-bar-label">${SCORE_LABELS[k]}</span><div class="score-bar-track"><div class="score-bar-fill" style="width:${p}%;background:${c}"></div></div><span class="score-bar-value">${v}</span></div>`;}).join('');
+  let advHTML='';if(r.detailed_advice){advHTML='<div class="section-title" style="margin-top:20px">💡 各项建议</div>';for(const k of SCORE_KEYS){const a=r.detailed_advice[k];if(!a)continue;advHTML+=`<div class="advice-card"><h4>${SCORE_LABELS[k]}（${r.scores[k]||'-'}分）</h4><div class="diagnosis">${a.diagnosis||''}</div>${a.exercises&&a.exercises.length?'<ul class="exercises">'+a.exercises.map(e=>`<li>${e}</li>`).join('')+'</ul>':''}${a.target?`<div class="target-text">🎯 ${a.target}</div>`:''}</div>`;}}
+  let corHTML='';if(r.example_corrections&&r.example_corrections.length)corHTML=`<div class="card" style="margin-top:10px"><div class="section-title">📝 表达优化</div>${r.example_corrections.map(c=>`<div style="font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.5">• ${c}</div>`).join('')}</div>`;
+  let fallacyHTML='';if(r.logical_fallacies&&r.logical_fallacies.length)fallacyHTML=`<div class="card" style="margin-top:10px"><div class="section-title">⚠️ 逻辑谬误</div>${r.logical_fallacies.map(f=>`<div style="font-size:12px;color:var(--yellow);margin-bottom:6px;line-height:1.5">• ${f}</div>`).join('')}</div>`;
+  let swHTML='';if((r.weak_points&&r.weak_points.length)||(r.strong_points&&r.strong_points.length)){swHTML='<div class="card" style="margin-top:10px">';if(r.strong_points&&r.strong_points.length)swHTML+=`<div style="font-size:13px;color:var(--green);margin-bottom:8px">💪 ${r.strong_points.join('  ·  ')}</div>`;if(r.weak_points&&r.weak_points.length)swHTML+=`<div style="font-size:13px;color:var(--yellow)">⚠️ ${r.weak_points.join('  ·  ')}</div>`;swHTML+='</div>';}
+  document.getElementById('modal-content').innerHTML=`<div class="modal-header"><h2>🗡️ ${label}</h2><div class="meta">${r.date||'?'} ${r.time||''} · 综合 ${avg} · 第${vn}次${r.side?' · 立场：'+r.side:''}${r.duration_min?' · '+r.duration_min+'分钟':''}</div></div><div class="card"><div class="section-title">📊 五维评分</div>${bars}</div>${swHTML}${fallacyHTML}${advHTML}${corHTML}${r.suggested_revisit?`<div class="card" style="margin-top:10px"><div class="section-title">🔄 复习建议</div><div style="font-size:13px;color:var(--text2);line-height:1.6">${r.suggested_revisit}</div></div>`:''}
+    <div class="card" style="margin-top:10px"><div class="section-title">🔄 生成复习提示词</div><p style="font-size:12px;color:var(--text3);margin-bottom:10px">针对「${label}」生成复习 prompt</p><button class="btn btn-primary" onclick="genReview(${idx})" style="background:var(--green);box-shadow:0 4px 20px #22c55e30">📋 生成并复制</button><div class="review-prompt-box" id="review-prompt-${idx}" style="display:none"></div></div>`;
+  document.getElementById('detail-modal').classList.add('show');document.body.style.overflow='hidden';
+}
+function closeModal(){document.getElementById('detail-modal').classList.remove('show');document.body.style.overflow='';}
+
+function genReview(idx){
+  const data=loadData(),r=data.records[idx];if(!r)return;const avg=getAverageScores(data),label=r.bookmark_label||r.topic||'训练';
+  const prompt=`你是辩论教练。这是复习训练——学习者要重新辩论之前的辩题。\n\n辩题：「${r.topic}」\n上次立场：${r.side||'未记录'}\n上次分数：逻辑${r.scores.logic}、结构${r.scores.structure}、论据${r.scores.evidence}、反驳${r.scores.rebuttal}、表达${r.scores.delivery}\n薄弱点：${r.weak_points?r.weak_points.join('、'):'无'}\n\n这次要求：\n1. 让学习者换一个立场辩论\n2. 针对上次的薄弱点重点考核\n3. 难度适当提升\n4. 结束时输出同样格式的 JSON 评分\n\n开始！`;
+  const box=document.getElementById(`review-prompt-${idx}`);box.textContent=prompt;box.style.display='block';
+  navigator.clipboard.writeText(prompt).then(()=>showToast('✅ 已复制！')).catch(()=>{const ta=document.createElement('textarea');ta.value=prompt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ 已复制！');});
+}
+
+function refreshSettings(){const data=loadData();document.getElementById('total-sessions').textContent=data.records.length;if(data.records.length>0){const b=Math.max(...data.records.map(r=>SCORE_KEYS.reduce((s,k)=>s+(r.scores[k]||0),0)/5));document.getElementById('best-score').textContent=b.toFixed(1);}}
+
+function copyPrompt(){const t=document.getElementById('prompt-text').textContent;navigator.clipboard.writeText(t).then(()=>showToast('✅ 已复制！去 Gemini 粘贴吧')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ 已复制！');});}
+
+function submitRecord(){
+  const input=document.getElementById('json-input').value.trim();if(!input){showToast('⚠️ 请先粘贴 JSON');return;}
+  try{let js=input;const m=input.match(/```(?:json)?\s*([\s\S]*?)```/);if(m)js=m[1].trim();const p=JSON.parse(js);if(!p.scores)throw new Error('缺少 scores');
+  const record={date:new Date().toISOString().split('T')[0],time:new Date().toTimeString().split(' ')[0],topic:p.topic||'未记录',bookmark_label:p.bookmark_label||'',side:p.side||'',scores:{},weak_points:p.weak_points||[],strong_points:p.strong_points||[],suggested_focus:p.suggested_focus||'',duration_min:p.duration_min||null,example_corrections:p.example_corrections||[],logical_fallacies:p.logical_fallacies||[],detailed_advice:p.detailed_advice||null,suggested_revisit:p.suggested_revisit||''};
+  for(const k of SCORE_KEYS){const v=p.scores[k];record.scores[k]=(typeof v==='number'&&v>=1&&v<=10)?v:5;}
+  const data=loadData();data.records.push(record);saveData(data);document.getElementById('json-input').value='';showToast('🎉 记录已保存！');switchTab('home');
+  }catch(e){showToast('❌ JSON 格式有误：'+e.message);}
+}
+
+function submitManual(){
+  const scores={};let valid=true;for(const k of SCORE_KEYS){const v=parseInt(document.getElementById(`m-${k}`).value);if(isNaN(v)||v<1||v>10){valid=false;break;}scores[k]=v;}
+  if(!valid){showToast('⚠️ 请填写所有分数（1-10）');return;}
+  const record={date:new Date().toISOString().split('T')[0],time:new Date().toTimeString().split(' ')[0],topic:document.getElementById('m-topic').value||'手动录入',bookmark_label:'',side:'',scores,weak_points:document.getElementById('m-weak').value?[document.getElementById('m-weak').value]:[],strong_points:[],suggested_focus:'',detailed_advice:null,logical_fallacies:[],suggested_revisit:''};
+  const data=loadData();data.records.push(record);saveData(data);
+  ['m-topic','m-logic','m-structure','m-evidence','m-rebuttal','m-delivery','m-weak'].forEach(id=>document.getElementById(id).value='');
+  showToast('🎉 记录已保存！');switchTab('home');
+}
+
+function exportData(){const d=loadData(),b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=`debate_data_${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(u);showToast('📤 已导出');}
+function clearData(){if(confirm('确定清除所有辩论记录？')){const e={records:[]};_cachedData=e;localStorage.removeItem(STORAGE_KEY);fetch('/api/debate_data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(e)}).catch(()=>{});showToast('🗑 已清除');refreshHome();}}
+function importData(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const imp=JSON.parse(e.target.result);if(!imp.records||!Array.isArray(imp.records))throw new Error('无效文件');const cur=loadData();const choice=cur.records.length>0?confirm(`当前有${cur.records.length}条。确定→合并，取消→覆盖`):false;if(choice){const ex=new Set(cur.records.map(r=>`${r.date}_${r.time}_${r.topic}`));const nr=imp.records.filter(r=>!ex.has(`${r.date}_${r.time}_${r.topic}`));cur.records.push(...nr);saveData(cur);showToast(`✅ 新增${nr.length}条`);}else{saveData(imp);showToast(`✅ 共${imp.records.length}条`);}refreshHome();}catch(err){showToast('❌ '+err.message);}};reader.readAsText(file);event.target.value='';}
+
+refreshHome();loadDataFromServer().then(()=>refreshHome());
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>

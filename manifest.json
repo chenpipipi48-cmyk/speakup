@@ -1,7 +1,7 @@
 {
-  "name": "SpeakUp 口语训练",
+  "name": "SpeakUp 思维训练平台",
   "short_name": "SpeakUp",
-  "description": "英语口语训练追踪器",
+  "description": "口语、翻译、辩论、费曼复盘训练平台",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
