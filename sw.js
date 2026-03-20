@@ -1,37 +1,63 @@
-const CACHE_NAME = 'speakup-v3';
-const ASSETS = ['/index.html', '/speak.html', '/translate.html', '/debate.html', '/feynman.html', '/manifest.json'];
+const CACHE_NAME = 'speakup-v4';
+const ASSETS = [
+  './',
+  './index.html',
+  './speak.html',
+  './translate.html',
+  './debate.html',
+  './feynman.html',
+  './manifest.json'
+];
 
+// Install: pre-cache core assets
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS))
+      .catch(err => console.warn('SW install cache failed:', err))
+  );
   self.skipWaiting();
 });
 
+// Activate: clean old caches
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-  ));
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    )
+  );
   self.clients.claim();
 });
 
+// Fetch: network-first for everything
 self.addEventListener('fetch', e => {
-  // API requests: network first
+  // Skip non-GET and cross-origin requests
+  if (e.request.method !== 'GET') return;
+  if (!e.request.url.startsWith(self.location.origin)) return;
+
+  // API requests: network only, no cache fallback (prevents data corruption)
   if (e.request.url.includes('/api/')) {
-    e.respondWith(fetch(e.request).catch(() => new Response('{"error":"offline"}', {
-      headers: { 'Content-Type': 'application/json' }
-    })));
+    e.respondWith(
+      fetch(e.request).catch(() =>
+        new Response('{"records":[]}', {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+    );
     return;
   }
-  // Static assets: cache first, then network
+
+  // HTML & static assets: network first, fall back to cache
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      const fetched = fetch(e.request).then(resp => {
+    fetch(e.request)
+      .then(resp => {
         if (resp.ok) {
           const clone = resp.clone();
           caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
         }
         return resp;
-      }).catch(() => cached);
-      return cached || fetched;
-    })
+      })
+      .catch(() => caches.match(e.request))
   );
 });
